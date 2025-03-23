@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 // User type definition
 type User = {
@@ -19,7 +20,7 @@ const initialUsers: User[] = [
 
 export const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if users exist in localStorage
@@ -35,10 +36,10 @@ export const UserList: React.FC = () => {
   }, []);
 
   const handleUserClick = (userId: string) => {
-    console.log("userId:", userId)
+    // console.log("userId:", userId)
     // Just navigate to a placeholder route for now
     // In the future, this will navigate to the user's dashboard
-    // navigate(`/user/${userId}`);
+    navigate(`/dashboard/employee/${userId}`);
   };
 
   return (
