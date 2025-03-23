@@ -381,47 +381,93 @@ const Dashboard: React.FC = () => {
 
         {/* Team Calendar */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Team Calendar</h3>
-          <div className="h-48 overflow-y-auto">
-            <div className="grid grid-cols-5 gap-1">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="text-xs p-1 text-center">
-                  <div className="font-medium text-gray-700 dark:text-gray-300 truncate">
-                    {member.name.split(' ')[0]}
-                  </div>
-                  <div
-                    className={`mt-1 h-4 rounded-sm ${teamLeaves.some(leave => leave.userId === member.id)
-                        ? 'bg-red-200 dark:bg-red-900'
-                        : 'bg-green-200 dark:bg-green-900'
-                      }`}
-                  />
+          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Team Calendar</h3>
+
+          {/* Monthly Calendar - Show this first so it's visible without scrolling */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">This Month</h4>
+
+            {/* Days of week header */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                <div key={index} className="text-center font-medium text-gray-700 dark:text-gray-300">
+                  {day}
                 </div>
               ))}
             </div>
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">This Month</h4>
-              <div className="grid grid-cols-7 gap-1">
-                {getDaysInCurrentMonth().map((day) => (
+
+            {/* Calendar grid - More compact to fit without scrolling */}
+            <div className="grid grid-cols-7 gap-1">
+              {getDaysInCurrentMonth().map((day) => {
+                // Determine text color based on background to ensure visibility
+                const getTextColor = () => {
+                  if (day.hasLeave) {
+                    return 'text-white';
+                  }
+                  return 'text-gray-800 dark:text-gray-200';
+                };
+
+                return (
                   <div
                     key={day.day}
-                    className={`text-xs p-1 text-center rounded-sm ${day.isToday
-                        ? 'ring-2 ring-blue-500 dark:ring-blue-400'
+                    className={`p-1 text-center rounded-md flex items-center justify-center ${day.isToday
+                        ? 'ring-2 ring-blue-500 dark:ring-blue-400 font-bold'
                         : ''
                       } ${day.hasLeave
                         ? day.leaveType === 'paid'
-                          ? 'bg-blue-100 dark:bg-blue-900'
+                          ? 'bg-blue-500 dark:bg-blue-600'
                           : day.leaveType === 'sick'
-                            ? 'bg-purple-100 dark:bg-purple-900'
+                            ? 'bg-purple-500 dark:bg-purple-600'
                             : day.leaveType === 'casual'
-                              ? 'bg-indigo-100 dark:bg-indigo-900'
-                              : 'bg-gray-100 dark:bg-gray-700'
-                        : ''
+                              ? 'bg-indigo-500 dark:bg-indigo-600'
+                              : 'bg-gray-500 dark:bg-gray-600'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      } ${getTextColor()}`}
+                  >
+                    <span className="text-sm font-medium">{day.day}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-sm bg-blue-500 dark:bg-blue-600 mr-1"></div>
+                <span className="text-gray-600 dark:text-gray-400">Paid</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-sm bg-purple-500 dark:bg-purple-600 mr-1"></div>
+                <span className="text-gray-600 dark:text-gray-400">Sick</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-sm bg-indigo-500 dark:bg-indigo-600 mr-1"></div>
+                <span className="text-gray-600 dark:text-gray-400">Casual</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Team Availability - Move to bottom since it's secondary information */}
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Team Availability</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="text-center">
+                  <div className="font-medium text-gray-800 dark:text-gray-200 text-xs mb-1">
+                    {member.name.split(' ')[0]}
+                  </div>
+                  <div
+                    className={`h-4 rounded-md ${teamLeaves.some(leave => leave.userId === member.id)
+                        ? 'bg-red-400 dark:bg-red-600'
+                        : 'bg-green-400 dark:bg-green-600'
                       }`}
                   >
-                    {day.day}
+                    <span className="text-xs font-medium text-white">
+                      {teamLeaves.some(leave => leave.userId === member.id) ? 'Away' : ''}
+                    </span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
