@@ -169,10 +169,10 @@ const EmployeeDashboardLayout: React.FC = () => {
         <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
           <nav className="p-4 space-y-1">
             <NavItem to={`/dashboard/employee/${userId}`} label="Dashboard" />
-            <NavItem to={`/user/${userId}/apply-leave`} label="Apply for Leave" />
-            <NavItem to={`/user/${userId}/my-leaves`} label="My Leaves" />
-            <NavItem to={`/user/${userId}/calendar`} label="Leave Calendar" />
-            <NavItem to={`/user/${userId}/profile`} label="Profile" />
+            <NavItem to={`/dashboard/employee/${userId}/apply-leave`} label="Apply for Leave" />
+            <NavItem to={`/dashboard/employee/${userId}/my-leaves`} label="My Leaves" />
+            <NavItem to={`/dashboard/employee/${userId}/calendar`} label="Leave Calendar" />
+            <NavItem to={`/dashboard/employee/${userId}/profile`} label="Profile" />
           </nav>
         </aside>
 
@@ -180,10 +180,10 @@ const EmployeeDashboardLayout: React.FC = () => {
         <nav className={`md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
           <div className="flex flex-col space-y-1">
             <MobileNavItem to={`/dashboard/employee/${userId}`} label="Dashboard" />
-            <MobileNavItem to={`/user/${userId}/apply-leave`} label="Apply for Leave" />
-            <MobileNavItem to={`/user/${userId}/my-leaves`} label="My Leaves" />
-            <MobileNavItem to={`/user/${userId}/calendar`} label="Leave Calendar" />
-            <MobileNavItem to={`/user/${userId}/profile`} label="Profile" />
+            <MobileNavItem to={`/dashboard/employee/${userId}/apply-leave`} label="Apply for Leave" />
+            <MobileNavItem to={`/dashboard/employee/${userId}/my-leaves`} label="My Leaves" />
+            <MobileNavItem to={`/dashboard/employee/${userId}/calendar`} label="Leave Calendar" />
+            <MobileNavItem to={`/dashboard/employee/${userId}/profile`} label="Profile" />
           </div>
         </nav>
 

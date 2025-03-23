@@ -225,19 +225,19 @@ const Dashboard: React.FC = () => {
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
           <Link
-            to={`/user/${userId}/apply-leave`}
+            to={`/dashboard/employee/${userId}/apply-leave`}
             className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-blue-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none"
           >
             Apply for Leave
           </Link>
           <Link
-            to={`/user/${userId}/apply-leave?emergency=true`}
+            to={`/dashboard/employee/${userId}/apply-leave?emergency=true`}
             className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none"
           >
             Emergency Leave
           </Link>
           <Link
-            to={`/user/${userId}/my-leaves`}
+            to={`/dashboard/employee/${userId}/my-leaves`}
             className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-gray-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none"
           >
             View My Leaves
