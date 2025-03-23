@@ -1,12 +1,105 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useParams } from 'react-router';
+
+// Define types for our data
+type User = {
+  id: string;
+  name: string;
+  role: 'employee' | 'admin' | 'manager';
+  email: string;
+};
+
+type LeaveBalance = {
+  userId: string;
+  paid: number;
+  sick: number;
+  casual: number;
+  miscellaneous: number;
+  // Maximum values for each type
+  maxPaid: number;
+  maxSick: number;
+  maxCasual: number;
+  maxMiscellaneous: number;
+};
 
 const EmployeeDashboardLayout: React.FC = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
 
-  // This would normally fetch the user from localStorage or an API
-  // For now, just display the userId in the header
+  useEffect(() => {
+    // Fetch user data from localStorage
+    const fetchUserData = () => {
+      const storedUsers = localStorage.getItem('leave-app-users');
+      if (storedUsers) {
+        const users: User[] = JSON.parse(storedUsers);
+        const currentUser = users.find(u => u.id === userId);
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          // User not found, redirect to home
+          navigate('/');
+        }
+      } else {
+        // No users in localStorage, redirect to home
+        navigate('/');
+      }
+    };
+
+    // Fetch leave balance from localStorage or initialize if not exists
+    const fetchLeaveBalance = () => {
+      const storedBalances = localStorage.getItem('leave-app-balances');
+
+      if (storedBalances) {
+        const balances: LeaveBalance[] = JSON.parse(storedBalances);
+        let userBalance = balances.find(b => b.userId === userId);
+
+        if (userBalance) {
+          setLeaveBalance(userBalance);
+        } else {
+          // Initialize new balance for user
+          const newBalance: LeaveBalance = {
+            userId: userId || '',
+            paid: 12,
+            sick: 12,
+            casual: 12,
+            miscellaneous: 12,
+            maxPaid: 12,
+            maxSick: 12,
+            maxCasual: 12,
+            maxMiscellaneous: 12
+          };
+
+          // Save to localStorage
+          const updatedBalances = [...balances, newBalance];
+          localStorage.setItem('leave-app-balances', JSON.stringify(updatedBalances));
+          setLeaveBalance(newBalance);
+        }
+      } else {
+        // No balances in localStorage, create new entry
+        const newBalance: LeaveBalance = {
+          userId: userId || '',
+          paid: 12,
+          sick: 12,
+          casual: 12,
+          miscellaneous: 12,
+          maxPaid: 12,
+          maxSick: 12,
+          maxCasual: 12,
+          maxMiscellaneous: 12
+        };
+
+        localStorage.setItem('leave-app-balances', JSON.stringify([newBalance]));
+        setLeaveBalance(newBalance);
+      }
+    };
+
+    if (userId) {
+      fetchUserData();
+      fetchLeaveBalance();
+    }
+  }, [userId, navigate]);
 
   const handleLogout = () => {
     // Navigate back to the user selection screen
@@ -24,7 +117,12 @@ const EmployeeDashboardLayout: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="text-sm text-gray-600 dark:text-gray-400">Employee ID: {userId}</p>
+              {user && (
+                <>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{user.role}</p>
+                </>
+              )}
             </div>
             <button
               onClick={handleLogout}
@@ -64,21 +162,26 @@ const EmployeeDashboardLayout: React.FC = () => {
           <div className="container mx-auto">
             {/* Leave Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <SummaryCard title="Paid Leaves" value="8/12" />
-              <SummaryCard title="Sick Leaves" value="10/12" />
-              <SummaryCard title="Casual Leaves" value="11/12" />
-              <SummaryCard title="Miscellaneous" value="12/12" />
+              <SummaryCard
+                title="Paid Leaves"
+                value={leaveBalance ? `${leaveBalance.paid}/${leaveBalance.maxPaid}` : "Loading..."}
+              />
+              <SummaryCard
+                title="Sick Leaves"
+                value={leaveBalance ? `${leaveBalance.sick}/${leaveBalance.maxSick}` : "Loading..."}
+              />
+              <SummaryCard
+                title="Casual Leaves"
+                value={leaveBalance ? `${leaveBalance.casual}/${leaveBalance.maxCasual}` : "Loading..."}
+              />
+              <SummaryCard
+                title="Miscellaneous"
+                value={leaveBalance ? `${leaveBalance.miscellaneous}/${leaveBalance.maxMiscellaneous}` : "Loading..."}
+              />
             </div>
 
             {/* Content Area - will be filled by child routes */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Dashboard</h2>
-
-              {/* Placeholder content */}
-              <div className="border border-gray-200 dark:border-gray-700 border-dashed rounded-lg p-6 flex items-center justify-center h-64">
-                <p className="text-gray-500 dark:text-gray-400">Dashboard content will appear here</p>
-              </div>
-
               {/* This is where child routes will render */}
               <Outlet />
             </div>
@@ -116,4 +219,4 @@ const SummaryCard: React.FC<{ title: string; value: string }> = ({ title, value 
   </div>
 );
 
-export default EmployeeDashboardLayout
+export default EmployeeDashboardLayout;
