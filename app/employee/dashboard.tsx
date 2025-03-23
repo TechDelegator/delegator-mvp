@@ -34,21 +34,6 @@ type LeaveApplication = {
   isEmergency: boolean;
 };
 
-type TeamMember = {
-  id: string;
-  name: string;
-};
-
-// Sample team members - in a real app, this would come from localStorage or an API
-const teamMembers: TeamMember[] = [
-  { id: '1', name: 'John Doe' },
-  { id: '2', name: 'Jane Smith' },
-  { id: '3', name: 'Mike Johnson' },
-  { id: '4', name: 'Sarah Williams' },
-  { id: '5', name: 'Alex Brown' },
-];
-
-
 
 const Dashboard: React.FC = () => {
   const { userId } = useParams();
@@ -219,54 +204,55 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Dashboard</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">Dashboard</h2>
 
-      {/* Notifications */}
+      {/* Notifications - Mobile optimized */}
       {notifications.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Notifications</h3>
-          <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 p-4 rounded">
-            <ul className="list-disc pl-5 space-y-1">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notifications</h3>
+          <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 p-2 sm:p-4 rounded">
+            <ul className="list-disc pl-4 space-y-1">
               {notifications.map((note, index) => (
-                <li key={index} className="text-sm text-blue-700 dark:text-blue-300">{note}</li>
+                <li key={index} className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">{note}</li>
               ))}
             </ul>
           </div>
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="mb-6">
-        <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Quick Actions</h3>
+      {/* Quick Actions - Mobile optimized */}
+      <div className="mb-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quick Actions</h3>
         <div className="flex flex-wrap gap-2">
           <Link
             to={`/user/${userId}/apply-leave`}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+            className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-blue-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none"
           >
             Apply for Leave
           </Link>
           <Link
             to={`/user/${userId}/apply-leave?emergency=true`}
-            className="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none focus:border-red-900 focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150"
+            className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none"
           >
             Emergency Leave
           </Link>
           <Link
             to={`/user/${userId}/my-leaves`}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
+            className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-gray-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none"
           >
             View My Leaves
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Main dashboard sections - Mobile optimized grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Leave Usage Overview */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Usage Overview</h3>
-          <div className="h-48 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Usage</h3>
+          <div className="h-36 sm:h-48 flex items-center justify-center">
             {leaveBalance ? (
-              <div className="grid grid-cols-4 gap-2 w-full">
+              <div className="grid grid-cols-4 gap-1 sm:gap-2 w-full">
                 {/* Simple visual representation of leave usage */}
                 <LeaveUsageBar
                   type="Paid"
@@ -294,32 +280,32 @@ const Dashboard: React.FC = () => {
                 />
               </div>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">Loading leave data...</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Loading leave data...</p>
             )}
           </div>
         </div>
 
         {/* Upcoming Leaves */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Upcoming Leaves</h3>
-          <div className="h-48 overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upcoming Leaves</h3>
+          <div className="h-36 sm:h-48 overflow-y-auto">
             {getUpcomingLeaves().length > 0 ? (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {getUpcomingLeaves().map((leave) => (
                   <li key={leave.id} className="py-2">
                     <div className="flex items-center">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
                           {formatDate(leave.startDate)} - {formatDate(leave.endDate)}
                         </p>
-                        <div className="flex items-center space-x-1 mt-1">
+                        <div className="flex items-center flex-wrap gap-1 mt-1">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getLeaveTypeBadgeClass(leave.type)}`}
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getLeaveTypeBadgeClass(leave.type)}`}
                           >
                             {leave.type.charAt(0).toUpperCase() + leave.type.slice(1)}
                           </span>
                           {leave.isEmergency && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
                               Emergency
                             </span>
                           )}
@@ -330,78 +316,79 @@ const Dashboard: React.FC = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-6">No upcoming leaves</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">No upcoming leaves</p>
             )}
           </div>
         </div>
 
         {/* Recent Applications */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Recent Applications</h3>
-          <div className="h-48 overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recent Applications</h3>
+          <div className="h-36 sm:h-48 overflow-y-auto">
             {getRecentApplications().length > 0 ? (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {getRecentApplications().map((application) => (
                   <li key={application.id} className="py-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0 pr-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
                           {formatDate(application.startDate)} - {formatDate(application.endDate)}
                         </p>
-                        <div className="flex items-center space-x-1 mt-1">
+                        <div className="flex items-center flex-wrap gap-1 mt-1">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getLeaveTypeBadgeClass(application.type)}`}
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getLeaveTypeBadgeClass(application.type)}`}
                           >
                             {application.type.charAt(0).toUpperCase() + application.type.slice(1)}
                           </span>
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeClass(application.status)}`}
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getStatusBadgeClass(application.status)}`}
                           >
                             {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                           </span>
                         </div>
                       </div>
-                      {application.status === 'rejected' && (
-                        <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
-                          Reapply
-                        </button>
-                      )}
-                      {application.status === 'pending' && (
-                        <button className="text-xs text-red-600 dark:text-red-400 hover:underline">
-                          Cancel
-                        </button>
-                      )}
+                      <div className="flex flex-shrink-0">
+                        {application.status === 'rejected' && (
+                          <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                            Reapply
+                          </button>
+                        )}
+                        {application.status === 'pending' && (
+                          <button className="text-xs text-red-600 dark:text-red-400 hover:underline">
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-6">No recent applications</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">No recent applications</p>
             )}
           </div>
         </div>
 
-        {/* Team Calendar */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Team Calendar</h3>
+        {/* Team Calendar - Mobile optimized */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Team Calendar</h3>
 
-          {/* Monthly Calendar - Show this first so it's visible without scrolling */}
+          {/* Monthly Calendar */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">This Month</h4>
+            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">This Month</h4>
 
             {/* Days of week header */}
             <div className="grid grid-cols-7 gap-1 mb-1">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                <div key={index} className="text-center font-medium text-gray-700 dark:text-gray-300">
+                <div key={index} className="text-center text-xs font-medium text-gray-700 dark:text-gray-300">
                   {day}
                 </div>
               ))}
             </div>
 
-            {/* Calendar grid - More compact to fit without scrolling */}
+            {/* Calendar grid - More compact for mobile */}
             <div className="grid grid-cols-7 gap-1">
               {getDaysInCurrentMonth().map((day) => {
-                // Determine text color based on background to ensure visibility
                 const getTextColor = () => {
                   if (day.hasLeave) {
                     return 'text-white';
@@ -413,7 +400,7 @@ const Dashboard: React.FC = () => {
                   <div
                     key={day.day}
                     className={`p-1 text-center rounded-md flex items-center justify-center ${day.isToday
-                      ? 'ring-2 ring-blue-500 dark:ring-blue-400 font-bold'
+                      ? 'ring-1 ring-blue-500 dark:ring-blue-400 font-bold'
                       : ''
                       } ${day.hasLeave
                         ? day.leaveType === 'paid'
@@ -426,7 +413,7 @@ const Dashboard: React.FC = () => {
                         : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                       } ${getTextColor()}`}
                   >
-                    <span className="text-sm font-medium">{day.day}</span>
+                    <span className="text-xs font-medium">{day.day}</span>
                   </div>
                 );
               })}
@@ -435,50 +422,26 @@ const Dashboard: React.FC = () => {
             {/* Legend */}
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-sm bg-blue-500 dark:bg-blue-600 mr-1"></div>
-                <span className="text-gray-600 dark:text-gray-400">Paid</span>
+                <div className="w-2 h-2 rounded-sm bg-blue-500 dark:bg-blue-600 mr-1"></div>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Paid</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-sm bg-purple-500 dark:bg-purple-600 mr-1"></div>
-                <span className="text-gray-600 dark:text-gray-400">Sick</span>
+                <div className="w-2 h-2 rounded-sm bg-purple-500 dark:bg-purple-600 mr-1"></div>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Sick</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 rounded-sm bg-indigo-500 dark:bg-indigo-600 mr-1"></div>
-                <span className="text-gray-600 dark:text-gray-400">Casual</span>
+                <div className="w-2 h-2 rounded-sm bg-indigo-500 dark:bg-indigo-600 mr-1"></div>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Casual</span>
               </div>
-            </div>
-          </div>
-
-          {/* Team Availability - Move to bottom since it's secondary information */}
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Team Availability</h4>
-            <div className="grid grid-cols-5 gap-2">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="text-center">
-                  <div className="font-medium text-gray-800 dark:text-gray-200 text-xs mb-1">
-                    {member.name.split(' ')[0]}
-                  </div>
-                  <div
-                    className={`h-4 rounded-md ${teamLeaves.some(leave => leave.userId === member.id)
-                      ? 'bg-red-400 dark:bg-red-600'
-                      : 'bg-green-400 dark:bg-green-600'
-                      }`}
-                  >
-                    <span className="text-xs font-medium text-white">
-                      {teamLeaves.some(leave => leave.userId === member.id) ? 'Away' : ''}
-                    </span>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Leave Policy Reminders */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Policy Reminders</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+      {/* Leave Policy Reminders - Mobile optimized */}
+      <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Policy Reminders</h3>
+        <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           <li>Only 1 casual leave per week is allowed</li>
           <li>Maximum 5 paid leaves can be taken per month</li>
           <li>Miscellaneous leaves cannot be taken back-to-back for more than one day</li>
@@ -486,10 +449,10 @@ const Dashboard: React.FC = () => {
         </ul>
       </div>
 
-      {/* Leave Strategy Suggestions */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Strategy Suggestions</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+      {/* Leave Strategy Suggestions - Mobile optimized */}
+      <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Leave Strategy Suggestions</h3>
+        <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           {leaveBalance && leaveBalance.paid > 8 && (
             <li>You have {leaveBalance.paid} paid leaves remaining. Consider planning a vacation!</li>
           )}
@@ -506,7 +469,7 @@ const Dashboard: React.FC = () => {
   );
 };
 
-// Helper component for leave usage bars
+// Helper component for leave usage bars - Mobile optimized
 const LeaveUsageBar: React.FC<{
   type: string;
   used: number;
@@ -530,7 +493,7 @@ const LeaveUsageBar: React.FC<{
   return (
     <div className="flex flex-col items-center">
       <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">{type}</div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-16 flex flex-col justify-end overflow-hidden">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-12 sm:h-16 flex flex-col justify-end overflow-hidden">
         <div
           className={`${getColorClass()} rounded-t-sm`}
           style={{ height: `${percentage}%` }}

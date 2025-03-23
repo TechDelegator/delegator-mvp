@@ -29,11 +29,13 @@ export function meta({ }: Route.MetaArgs) {
     { name: "description", content: "Employee Dashboard overview" },
   ];
 }
+
 const EmployeeDashboardLayout: React.FC = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Fetch user data from localStorage
@@ -113,17 +115,38 @@ const EmployeeDashboardLayout: React.FC = () => {
     navigate('/');
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Header */}
+      {/* Header - Improved for mobile */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leave Management</h1>
+        <div className="px-4 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Leave Management</h1>
+
+            <div className="flex items-center sm:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              >
+                {mobileMenuOpen ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
+          <div className="flex justify-between items-center mt-2 sm:mt-0">
+            <div className="text-left sm:text-right">
               {user && (
                 <>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
@@ -133,7 +156,7 @@ const EmployeeDashboardLayout: React.FC = () => {
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className="ml-4 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             >
               Logout
             </button>
@@ -141,11 +164,11 @@ const EmployeeDashboardLayout: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
+      <div className="flex flex-1 flex-col md:flex-row">
+        {/* Sidebar for desktop */}
         <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:block">
           <nav className="p-4 space-y-1">
-            <NavItem to={`/user/${userId}/dashboard`} label="Dashboard" />
+            <NavItem to={`/dashboard/employee/${userId}`} label="Dashboard" />
             <NavItem to={`/user/${userId}/apply-leave`} label="Apply for Leave" />
             <NavItem to={`/user/${userId}/my-leaves`} label="My Leaves" />
             <NavItem to={`/user/${userId}/calendar`} label="Leave Calendar" />
@@ -153,22 +176,22 @@ const EmployeeDashboardLayout: React.FC = () => {
           </nav>
         </aside>
 
-        {/* Mobile Navigation */}
-        <nav className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2">
-          <div className="flex space-x-2 overflow-x-auto">
-            <MobileNavItem to={`/user/${userId}/dashboard`} label="Dashboard" />
-            <MobileNavItem to={`/user/${userId}/apply-leave`} label="Apply" />
+        {/* Mobile Navigation - Improved */}
+        <nav className={`md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 ${mobileMenuOpen ? 'block' : 'hidden'}`}>
+          <div className="flex flex-col space-y-1">
+            <MobileNavItem to={`/dashboard/employee/${userId}`} label="Dashboard" />
+            <MobileNavItem to={`/user/${userId}/apply-leave`} label="Apply for Leave" />
             <MobileNavItem to={`/user/${userId}/my-leaves`} label="My Leaves" />
-            <MobileNavItem to={`/user/${userId}/calendar`} label="Calendar" />
+            <MobileNavItem to={`/user/${userId}/calendar`} label="Leave Calendar" />
             <MobileNavItem to={`/user/${userId}/profile`} label="Profile" />
           </div>
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
-          <div className="container mx-auto">
-            {/* Leave Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <main className="flex-1 p-4">
+          <div>
+            {/* Leave Summary Cards - Improved for mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <SummaryCard
                 title="Paid Leaves"
                 value={leaveBalance ? `${leaveBalance.paid}/${leaveBalance.maxPaid}` : "Loading..."}
@@ -188,7 +211,7 @@ const EmployeeDashboardLayout: React.FC = () => {
             </div>
 
             {/* Content Area - will be filled by child routes */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
               {/* This is where child routes will render */}
               <Outlet />
             </div>
@@ -212,16 +235,25 @@ const NavItem: React.FC<{ to: string; label: string }> = ({ to, label }) => (
 const MobileNavItem: React.FC<{ to: string; label: string }> = ({ to, label }) => (
   <Link
     to={to}
-    className="px-3 py-1 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded whitespace-nowrap"
+    className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+  >
+    {label}
+  </Link>
+);
+
+const MobileTabItem: React.FC<{ to: string; label: string }> = ({ to, label }) => (
+  <Link
+    to={to}
+    className="inline-block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
   >
     {label}
   </Link>
 );
 
 const SummaryCard: React.FC<{ title: string; value: string }> = ({ title, value }) => (
-  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
-    <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-sm">
+    <h3 className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
+    <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Available</p>
   </div>
 );
