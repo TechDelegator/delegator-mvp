@@ -6,7 +6,8 @@ export default [
     route('dashboard/employee/:userId', "./employee/dashboard.tsx"),
     route('dashboard/employee/:userId/apply-leave', "./employee/applyLeave.tsx"),
     route('dashboard/employee/:userId/my-leaves', "./employee/myLeaves.tsx"),
-    route('dashboard/employee/:userId/calendar', "./employee/leaveCalendar.tsx")
+    route('dashboard/employee/:userId/calendar', "./employee/leaveCalendar.tsx"),
+    route('dashboard/employee/:userId/profile', "./employee/profile.tsx"),
   ]
   )
 ] satisfies RouteConfig;
