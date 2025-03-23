@@ -182,7 +182,37 @@ const ApplyLeave: React.FC = () => {
     };
 
     checkEmergencyLeaveUsage();
-  }, [userId]);
+
+    const params = new URLSearchParams(location.search);
+    const reapplyLeaveId = params.get('reapply');
+
+
+    if (reapplyLeaveId) {
+      // Get existing applications from localStorage
+      const storedApplications = localStorage.getItem('leave-app-applications');
+
+      if (storedApplications) {
+        const applications: LeaveApplication[] = JSON.parse(storedApplications);
+        const leaveToReapply = applications.find(leave => leave.id === reapplyLeaveId && leave.userId === userId);
+
+        if (leaveToReapply) {
+          // Pre-fill form with data from rejected leave
+          setLeaveType(leaveToReapply.type);
+          setStartDate(leaveToReapply.startDate);
+          setEndDate(leaveToReapply.endDate);
+
+          // Add a note about reapplying
+          const reasonPrefix = "Reapplying for previously rejected leave. ";
+          if (!leaveToReapply.reason.startsWith(reasonPrefix)) {
+            setReason(reasonPrefix + leaveToReapply.reason);
+          } else {
+            setReason(leaveToReapply.reason);
+          }
+        }
+      }
+    }
+
+  }, [userId, location.search]);
 
   const validateLeaveApplication = (): string[] => {
     const errors: string[] = [];
@@ -655,8 +685,8 @@ const ApplyLeave: React.FC = () => {
               type="date"
               id="startDate"
               className={`w-full p-2 border rounded-md ${isEmergency
-                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
-                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
+                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
                 } text-gray-900 dark:text-white`}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
@@ -677,8 +707,8 @@ const ApplyLeave: React.FC = () => {
               type="date"
               id="endDate"
               className={`w-full p-2 border rounded-md ${isEmergency
-                  ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
-                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700'
+                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
                 } text-gray-900 dark:text-white`}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
@@ -951,10 +981,10 @@ const ApplyLeave: React.FC = () => {
           <button
             type="submit"
             className={`px-4 py-2 ${isEmergency
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : leaveType === 'sick'
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : leaveType === 'sick'
+                ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
               } rounded-md focus:outline-none ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isSubmitting}
           >

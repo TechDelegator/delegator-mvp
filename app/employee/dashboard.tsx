@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { Link } from 'react-router';
 
 // Define types
@@ -42,6 +42,9 @@ const Dashboard: React.FC = () => {
   const [leaveApplications, setLeaveApplications] = useState<LeaveApplication[]>([]);
   const [teamLeaves, setTeamLeaves] = useState<LeaveApplication[]>([]);
   const [notifications, setNotifications] = useState<string[]>([]);
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch user data
@@ -352,13 +355,27 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex flex-shrink-0">
+
                         {application.status === 'rejected' && (
-                          <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                          <button
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            onClick={() => navigate(`/dashboard/employee/${userId}/apply-leave?reapply=${application.id}`)}
+                          >
                             Reapply
                           </button>
                         )}
+
                         {application.status === 'pending' && (
-                          <button className="text-xs text-red-600 dark:text-red-400 hover:underline">
+                          <button
+                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to cancel this leave application?')) {
+                                // Logic to cancel the leave (you can implement this in a function similar to the one in the MyLeaves component)
+                                // For now, just show an alert
+                                alert('This functionality will be implemented soon.');
+                              }
+                            }}
+                          >
                             Cancel
                           </button>
                         )}
