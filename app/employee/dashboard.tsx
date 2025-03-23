@@ -230,10 +230,14 @@ const Dashboard: React.FC = () => {
           >
             Apply for Leave
           </Link>
+
           <Link
             to={`/dashboard/employee/${userId}/apply-leave?emergency=true`}
             className="inline-flex items-center px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-900 focus:outline-none"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+            </svg>
             Emergency Leave
           </Link>
           <Link
