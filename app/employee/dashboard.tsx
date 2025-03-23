@@ -48,6 +48,8 @@ const teamMembers: TeamMember[] = [
   { id: '5', name: 'Alex Brown' },
 ];
 
+
+
 const Dashboard: React.FC = () => {
   const { userId } = useParams();
   const [user, setUser] = useState<User | null>(null);
@@ -411,8 +413,8 @@ const Dashboard: React.FC = () => {
                   <div
                     key={day.day}
                     className={`p-1 text-center rounded-md flex items-center justify-center ${day.isToday
-                        ? 'ring-2 ring-blue-500 dark:ring-blue-400 font-bold'
-                        : ''
+                      ? 'ring-2 ring-blue-500 dark:ring-blue-400 font-bold'
+                      : ''
                       } ${day.hasLeave
                         ? day.leaveType === 'paid'
                           ? 'bg-blue-500 dark:bg-blue-600'
@@ -458,8 +460,8 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div
                     className={`h-4 rounded-md ${teamLeaves.some(leave => leave.userId === member.id)
-                        ? 'bg-red-400 dark:bg-red-600'
-                        : 'bg-green-400 dark:bg-green-600'
+                      ? 'bg-red-400 dark:bg-red-600'
+                      : 'bg-green-400 dark:bg-green-600'
                       }`}
                   >
                     <span className="text-xs font-medium text-white">

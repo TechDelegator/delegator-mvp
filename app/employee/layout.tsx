@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate, useParams } from 'react-router';
+import type { Route } from '../+types/root';
 
 // Define types for our data
 type User = {
@@ -22,6 +23,12 @@ type LeaveBalance = {
   maxMiscellaneous: number;
 };
 
+export function meta({ }: Route.MetaArgs) {
+  return [
+    { title: "Employee Dashboard" },
+    { name: "description", content: "Employee Dashboard overview" },
+  ];
+}
 const EmployeeDashboardLayout: React.FC = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
