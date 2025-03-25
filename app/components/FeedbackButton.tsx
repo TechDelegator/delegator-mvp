@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 
-const BugReportButton: React.FC = () => {
+const FeedbackButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [bugType, setBugType] = useState("ui");
+  const [feedbackType, setFeedbackType] = useState("bug"); // 'bug' or 'suggestion'
+  const [category, setCategory] = useState("ui");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState("");
   const [email, setEmail] = useState("");
@@ -13,14 +15,20 @@ const BugReportButton: React.FC = () => {
   const closeModal = () => {
     if (!isSubmitting) {
       setIsOpen(false);
-      // Reset form if closed without submitting
       if (isSubmitted) {
-        setBugType("ui");
-        setDescription("");
-        setSteps("");
-        setIsSubmitted(false);
+        resetForm();
       }
     }
+  };
+
+  const resetForm = () => {
+    setFeedbackType("bug");
+    setCategory("ui");
+    setTitle("");
+    setDescription("");
+    setSteps("");
+    setEmail("");
+    setIsSubmitted(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,9 +42,11 @@ const BugReportButton: React.FC = () => {
 
       // In a real app, you would send this data to your API
       console.log({
-        bugType,
+        type: feedbackType,
+        category,
+        title,
         description,
-        steps,
+        steps: feedbackType === "bug" ? steps : null,
         email,
         timestamp: new Date().toISOString(),
       });
@@ -44,12 +54,28 @@ const BugReportButton: React.FC = () => {
       // Reset form after successful submission
       setTimeout(() => {
         setIsOpen(false);
-        setBugType("ui");
-        setDescription("");
-        setSteps("");
-        setIsSubmitted(false);
+        resetForm();
       }, 2000);
     }, 1000);
+  };
+
+  // Categories based on feedback type
+  const getCategories = () => {
+    if (feedbackType === "bug") {
+      return [
+        { value: "ui", label: "UI Issue" },
+        { value: "functionality", label: "Functionality Issue" },
+        { value: "performance", label: "Performance Issue" },
+        { value: "other", label: "Other" },
+      ];
+    } else {
+      return [
+        { value: "ui", label: "UI Improvement" },
+        { value: "functionality", label: "New Feature" },
+        { value: "workflow", label: "Workflow Improvement" },
+        { value: "other", label: "Other" },
+      ];
+    }
   };
 
   return (
@@ -57,8 +83,8 @@ const BugReportButton: React.FC = () => {
       {/* Floating Button */}
       <button
         onClick={openModal}
-        className="fixed bottom-4 right-4 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 sm:w-14 sm:h-14"
-        aria-label="Report a bug"
+        className="fixed bottom-4 right-4 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 sm:w-14 sm:h-14"
+        aria-label="Give feedback"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -71,7 +97,7 @@ const BugReportButton: React.FC = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
           />
         </svg>
       </button>
@@ -85,22 +111,41 @@ const BugReportButton: React.FC = () => {
               {/* Modal Header */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-red-500 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
+                  {feedbackType === "bug" ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-red-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6 text-green-500 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                  )}
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Report a Bug
+                    {feedbackType === "bug"
+                      ? "Report a Bug"
+                      : "Suggest an Improvement"}
                   </h3>
                 </div>
                 <button
@@ -141,42 +186,94 @@ const BugReportButton: React.FC = () => {
                     />
                   </svg>
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Bug Report Submitted!
+                    {feedbackType === "bug"
+                      ? "Bug Report Submitted!"
+                      : "Suggestion Submitted!"}
                   </h4>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Thank you for helping us improve our application. We'll look
-                    into this issue as soon as possible.
+                    Thank you for your feedback!{" "}
+                    {feedbackType === "bug"
+                      ? "We'll investigate this issue as soon as possible."
+                      : "We appreciate your ideas to improve our application."}
                   </p>
                 </div>
               ) : (
-                // Bug Report Form
+                // Feedback Form
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-4">
-                    {/* Bug Type */}
+                    {/* Feedback Type Toggle */}
+                    <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
+                      <button
+                        type="button"
+                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                          feedbackType === "bug"
+                            ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                            : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                        onClick={() => setFeedbackType("bug")}
+                      >
+                        Report a Bug
+                      </button>
+                      <button
+                        type="button"
+                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                          feedbackType === "suggestion"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                        onClick={() => setFeedbackType("suggestion")}
+                      >
+                        Suggest Improvement
+                      </button>
+                    </div>
+
+                    {/* Category */}
                     <div>
                       <label
-                        htmlFor="bugType"
+                        htmlFor="category"
                         className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
-                        Bug Type
+                        Category
                       </label>
                       <select
-                        id="bugType"
-                        value={bugType}
-                        onChange={(e) => setBugType(e.target.value)}
+                        id="category"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         required
                       >
-                        <option value="ui">UI Issue</option>
-                        <option value="functionality">
-                          Functionality Issue
-                        </option>
-                        <option value="performance">Performance Issue</option>
-                        <option value="other">Other</option>
+                        {getCategories().map((cat) => (
+                          <option key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
-                    {/* Bug Description */}
+                    {/* Title */}
+                    <div>
+                      <label
+                        htmlFor="title"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
+                        Title <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder={
+                          feedbackType === "bug"
+                            ? "Summarize the bug"
+                            : "Name your suggestion"
+                        }
+                        required
+                      />
+                    </div>
+
+                    {/* Description */}
                     <div>
                       <label
                         htmlFor="description"
@@ -190,28 +287,34 @@ const BugReportButton: React.FC = () => {
                         onChange={(e) => setDescription(e.target.value)}
                         rows={3}
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="Please describe the issue in detail..."
+                        placeholder={
+                          feedbackType === "bug"
+                            ? "Please describe the issue in detail..."
+                            : "Please describe your idea in detail..."
+                        }
                         required
                       />
                     </div>
 
-                    {/* Steps to Reproduce */}
-                    <div>
-                      <label
-                        htmlFor="steps"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Steps to Reproduce
-                      </label>
-                      <textarea
-                        id="steps"
-                        value={steps}
-                        onChange={(e) => setSteps(e.target.value)}
-                        rows={3}
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="Please list the steps to reproduce this issue..."
-                      />
-                    </div>
+                    {/* Steps to Reproduce (Only for bugs) */}
+                    {feedbackType === "bug" && (
+                      <div>
+                        <label
+                          htmlFor="steps"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                          Steps to Reproduce
+                        </label>
+                        <textarea
+                          id="steps"
+                          value={steps}
+                          onChange={(e) => setSteps(e.target.value)}
+                          rows={3}
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="Please list the steps to reproduce this issue..."
+                        />
+                      </div>
+                    )}
 
                     {/* Email (Optional) */}
                     <div>
@@ -243,7 +346,11 @@ const BugReportButton: React.FC = () => {
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                        className={`px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                          feedbackType === "bug"
+                            ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                            : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                        }`}
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? (
@@ -270,8 +377,10 @@ const BugReportButton: React.FC = () => {
                             </svg>
                             Submitting...
                           </div>
-                        ) : (
+                        ) : feedbackType === "bug" ? (
                           "Submit Bug Report"
+                        ) : (
+                          "Submit Suggestion"
                         )}
                       </button>
                     </div>
@@ -286,4 +395,4 @@ const BugReportButton: React.FC = () => {
   );
 };
 
-export default BugReportButton;
+export default FeedbackButton;

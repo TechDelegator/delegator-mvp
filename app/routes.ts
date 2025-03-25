@@ -8,6 +8,7 @@ export default [
     route('dashboard/employee/:userId/my-leaves', "./employee/myLeaves.tsx"),
     route('dashboard/employee/:userId/calendar', "./employee/leaveCalendar.tsx"),
     route('dashboard/employee/:userId/profile', "./employee/profile.tsx"),
-  ]
-  )
+  ],
+  ),
+  route("dashboard/manager/:userId", "./manager/dashboard.tsx")
 ] satisfies RouteConfig;

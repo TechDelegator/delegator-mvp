@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useNavigate, useParams } from "react-router";
 import type { Route } from "../+types/root";
-import BugReportButton from "~/components/BugReportButton";
+import FeedbackButton from "~/components/FeedbackButton";
 
 // Define types for our data
 type User = {
@@ -300,7 +300,7 @@ const EmployeeDashboardLayout: React.FC = () => {
           </div>
         </main>
       </div>
-      <BugReportButton />
+      <FeedbackButton />
     </div>
   );
 };
@@ -322,18 +322,6 @@ const MobileNavItem: React.FC<{ to: string; label: string }> = ({
   <Link
     to={to}
     className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-  >
-    {label}
-  </Link>
-);
-
-const MobileTabItem: React.FC<{ to: string; label: string }> = ({
-  to,
-  label,
-}) => (
-  <Link
-    to={to}
-    className="inline-block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
   >
     {label}
   </Link>
