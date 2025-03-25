@@ -30,7 +30,6 @@ type CalendarDay = {
 };
 
 const LeaveCalendar: React.FC = () => {
-  const { userId } = useParams();
   const [leaves, setLeaves] = useState<LeaveApplication[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -365,10 +364,7 @@ const LeaveCalendar: React.FC = () => {
                           >
                             <div className="flex items-center">
                               <span className="font-medium truncate">
-                                {getFirstName(getUserName(leave.userId))}
-                              </span>
-                              <span className="ml-1 bg-white bg-opacity-30 rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold">
-                                {getTypeInitial(leave.type)}
+                                {getUserName(leave.userId)}
                               </span>
                               {leave.isEmergency && (
                                 <span className="ml-1" title="Emergency">
