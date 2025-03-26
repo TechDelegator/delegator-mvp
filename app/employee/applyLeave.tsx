@@ -89,26 +89,57 @@ const ApplyLeave: React.FC = () => {
 
     if (isEmergencyLeave) {
       setIsEmergency(true);
-      setStartDate(formattedDate);
-      setEndDate(formattedDate);
-      setReason("Emergency leave - details to be provided later");
-      // For emergency leaves, default to "sick" type
       setLeaveType("sick");
+      setReason("Emergency leave - details to be provided later");
+
+      // Get current hour to determine leave date handling
+      const currentHour = today.getHours();
+
+      if (currentHour >= 18) {
+        // After 6 PM
+        // Set leave for tomorrow
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const tomorrowFormatted = tomorrow.toISOString().split("T")[0];
+        setStartDate(tomorrowFormatted);
+        setEndDate(tomorrowFormatted);
+
+        // Show notification to user
+        setTimeout(() => {
+          alert(
+            "Since it's after 6 PM, your emergency leave has been automatically scheduled for tomorrow."
+          );
+        }, 500);
+      } else if (currentHour >= 12 && currentHour < 18) {
+        // Between 12:01 PM and 6 PM
+        // Prompt user to choose
+        setTimeout(() => {
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+          const tomorrowFormatted = tomorrow.toISOString().split("T")[0];
+
+          const chooseDay = window.confirm(
+            "Do you want to apply emergency leave for tomorrow instead of today?\n\n" +
+              "Click 'OK' for tomorrow, or 'Cancel' for today."
+          );
+
+          if (chooseDay) {
+            setStartDate(tomorrowFormatted);
+            setEndDate(tomorrowFormatted);
+          } else {
+            setStartDate(formattedDate);
+            setEndDate(formattedDate);
+          }
+        }, 500);
+      } else {
+        // Before 12 PM
+        // Set for today (default behavior)
+        setStartDate(formattedDate);
+        setEndDate(formattedDate);
+      }
     }
 
-    // Fetch leave balance
-    const fetchLeaveBalance = () => {
-      const storedBalances = localStorage.getItem("leave-app-balances");
-      if (storedBalances) {
-        const balances: LeaveBalance[] = JSON.parse(storedBalances);
-        const userBalance = balances.find((b) => b.userId === userId);
-        if (userBalance) {
-          setLeaveBalance(userBalance);
-        }
-      }
-    };
-
-    fetchLeaveBalance();
+    // Rest of your existing code...
   }, [userId, location.search]);
 
   // Check for public holidays whenever date range changes
