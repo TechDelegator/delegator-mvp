@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate, useParams } from "react-router";
+import {
+  Link,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router";
 import type { Route } from "../+types/root";
 import FeedbackButton from "~/components/FeedbackButton";
 
@@ -37,6 +43,23 @@ const EmployeeDashboardLayout: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if we have a refresh request in the location state
+    if (location.state?.refreshBalance) {
+      // Reload the balance data
+      const storedBalances = localStorage.getItem("leave-app-balances");
+      if (storedBalances) {
+        const balances = JSON.parse(storedBalances);
+        const userBalance = balances.find((b: any) => b.userId === userId);
+        if (userBalance) {
+          setLeaveBalance(userBalance);
+        }
+      }
+    }
+  }, [location, userId]);
 
   useEffect(() => {
     // Fetch user data from localStorage
