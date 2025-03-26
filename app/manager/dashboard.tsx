@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 // Define types
 type User = {
@@ -46,6 +46,13 @@ const ManagerDashboard: React.FC = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [filter, setFilter] = useState("all");
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Navigate back to the user selection screen
+    navigate("/");
+  };
 
   useEffect(() => {
     // Fetch pending leave applications and user data
@@ -319,6 +326,12 @@ const ManagerDashboard: React.FC = () => {
               {pendingLeaves.filter((l) => l.isEmergency).length} Emergency
             </div>
           )}
+          <button
+            onClick={handleLogout}
+            className="ml-4 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+          >
+            Logout
+          </button>
         </div>
       </div>
 
