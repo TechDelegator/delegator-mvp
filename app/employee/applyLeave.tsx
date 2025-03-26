@@ -905,31 +905,85 @@ const ApplyLeave: React.FC = () => {
                 );
                 if (storedApplications) {
                   const applications = JSON.parse(storedApplications);
-                  const userApps = applications.filter(
+
+                  // Get the current user's pending/approved leaves
+                  const userLeaves = applications.filter(
                     (a) =>
                       a.userId === userId &&
                       (a.status === "approved" || a.status === "pending")
                   );
 
-                  const start = new Date(startDate);
-                  const end = new Date(endDate);
+                  // Get other team members' approved leaves
+                  const teamLeaves = applications.filter(
+                    (a) => a.userId !== userId && a.status === "approved"
+                  );
 
-                  // Check for overlapping leaves
-                  const overlaps = userApps.filter((leave) => {
+                  // Convert date strings to Date objects and set time to 00:00:00
+                  const startDateObj = new Date(startDate);
+                  startDateObj.setHours(0, 0, 0, 0);
+
+                  const endDateObj = new Date(endDate);
+                  endDateObj.setHours(0, 0, 0, 0);
+
+                  // Function to check if date ranges overlap
+                  const datesOverlap = (start1, end1, start2, end2) => {
+                    return start1 <= end2 && end1 >= start2;
+                  };
+
+                  // Check for personal conflicts
+                  const personalConflicts = userLeaves.filter((leave) => {
                     const leaveStart = new Date(leave.startDate);
-                    const leaveEnd = new Date(leave.endDate);
+                    leaveStart.setHours(0, 0, 0, 0);
 
-                    // Check if date ranges overlap
-                    return (
-                      (start <= leaveEnd && start >= leaveStart) || // Start date falls within existing leave
-                      (end <= leaveEnd && end >= leaveStart) || // End date falls within existing leave
-                      (start <= leaveStart && end >= leaveEnd) // New leave contains existing leave
+                    const leaveEnd = new Date(leave.endDate);
+                    leaveEnd.setHours(0, 0, 0, 0);
+
+                    return datesOverlap(
+                      startDateObj,
+                      endDateObj,
+                      leaveStart,
+                      leaveEnd
                     );
                   });
 
-                  if (overlaps.length > 0) {
+                  // Check for team conflicts (other people on leave)
+                  const teamConflicts = teamLeaves.filter((leave) => {
+                    const leaveStart = new Date(leave.startDate);
+                    leaveStart.setHours(0, 0, 0, 0);
+
+                    const leaveEnd = new Date(leave.endDate);
+                    leaveEnd.setHours(0, 0, 0, 0);
+
+                    return datesOverlap(
+                      startDateObj,
+                      endDateObj,
+                      leaveStart,
+                      leaveEnd
+                    );
+                  });
+
+                  // Generate conflict message
+                  if (personalConflicts.length > 0) {
+                    const conflictDates = personalConflicts
+                      .map(
+                        (leave) =>
+                          `${new Date(
+                            leave.startDate
+                          ).toLocaleDateString()} to ${new Date(
+                            leave.endDate
+                          ).toLocaleDateString()} (${leave.type} leave, ${
+                            leave.status
+                          })`
+                      )
+                      .join("\n- ");
+
                     alert(
-                      `Warning: You have ${overlaps.length} existing leave request(s) that overlap with these dates.`
+                      `You already have ${personalConflicts.length} leave request(s) that overlap with these dates:\n- ${conflictDates}`
+                    );
+                  } else if (teamConflicts.length > 0) {
+                    // Show just a count of team members on leave during this period
+                    alert(
+                      `${teamConflicts.length} team member(s) will be on leave during this period. You can still apply, but be aware that team capacity may be affected.`
                     );
                   } else {
                     alert(
