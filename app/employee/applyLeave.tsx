@@ -741,39 +741,6 @@ const ApplyLeave: React.FC = () => {
         </div>
       )}
 
-      {/* Leave Balance Summary */}
-      <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Your Leave Balance
-        </h3>
-        <div className="grid grid-cols-4 gap-2 text-center">
-          <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Paid</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {leaveBalance?.paid || 0}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Sick</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {leaveBalance?.sick || 0}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Casual</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {leaveBalance?.casual || 0}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Misc</p>
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">
-              {leaveBalance?.miscellaneous || 0}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Error Messages */}
       {validationErrors.length > 0 && (
         <div className="mb-4 bg-red-50 dark:bg-red-900 rounded-lg p-3 border border-red-200 dark:border-red-700">
