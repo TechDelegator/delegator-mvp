@@ -21,11 +21,82 @@ const initialUsers: User[] = [
     email: "sarah@example.com",
   },
   { id: "5", name: "Alex Brown", role: "employee", email: "alex@example.com" },
+  { id: "6", name: "Emily Chen", role: "employee", email: "emily@example.com" },
+  { id: "7", name: "David Kim", role: "employee", email: "david@example.com" },
+  {
+    id: "8",
+    name: "Maria Rodriguez",
+    role: "employee",
+    email: "maria@example.com",
+  },
+  {
+    id: "9",
+    name: "Robert Taylor",
+    role: "manager",
+    email: "robert@example.com",
+  },
+  {
+    id: "10",
+    name: "Lisa Johnson",
+    role: "employee",
+    email: "lisa@example.com",
+  },
+  {
+    id: "11",
+    name: "Michael Patel",
+    role: "employee",
+    email: "michael@example.com",
+  },
+  {
+    id: "12",
+    name: "Jennifer Wong",
+    role: "admin",
+    email: "jennifer@example.com",
+  },
+  {
+    id: "13",
+    name: "Thomas Wilson",
+    role: "employee",
+    email: "thomas@example.com",
+  },
+  {
+    id: "14",
+    name: "Sophia Garcia",
+    role: "employee",
+    email: "sophia@example.com",
+  },
+  {
+    id: "15",
+    name: "Daniel Martinez",
+    role: "manager",
+    email: "daniel@example.com",
+  },
 ];
 
 export const UserList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const navigate = useNavigate();
+
+  // Function to reset all application data
+  const resetAppData = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all application data? This will remove all users, leave balances, and applications."
+      )
+    ) {
+      // Clear all app-related localStorage keys
+      localStorage.removeItem("leave-app-users");
+      localStorage.removeItem("leave-app-balances");
+      localStorage.removeItem("leave-app-applications");
+
+      // Reinitialize with initial users
+      localStorage.setItem("leave-app-users", JSON.stringify(initialUsers));
+      setUsers(initialUsers);
+
+      // Show confirmation
+      alert("Application data has been reset successfully.");
+    }
+  };
 
   useEffect(() => {
     // Check if users exist in localStorage
@@ -86,6 +157,16 @@ export const UserList: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Reset Application Data Button */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={resetAppData}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Reset Application Data
+          </button>
         </div>
       </div>
     </div>
