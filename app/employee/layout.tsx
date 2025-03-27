@@ -156,7 +156,7 @@ const EmployeeDashboardLayout: React.FC = () => {
         <div className="px-4 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center">
           <div className="flex justify-between items-center">
             <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-              Leave Management
+              Delegator
             </h1>
 
             <div className="flex items-center sm:hidden">

@@ -308,7 +308,7 @@ const ManagerDashboard: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Manager Dashboard
+            Delegator
           </h1>
           {currentUser && (
             <p className="text-gray-600 dark:text-gray-400">
