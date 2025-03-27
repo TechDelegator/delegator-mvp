@@ -279,8 +279,13 @@ const EmployeeDashboardLayout: React.FC = () => {
         {/* Main Content */}
         <main className="flex-1 p-4">
           <div>
+            {/* Content Area - will be filled by child routes */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
+              {/* This is where child routes will render */}
+              <Outlet />
+            </div>
             {/* Leave Summary Cards - Improved for mobile */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mb-6">
               <SummaryCard
                 title="Paid Leaves"
                 value={
@@ -313,12 +318,6 @@ const EmployeeDashboardLayout: React.FC = () => {
                     : "Loading..."
                 }
               />
-            </div>
-
-            {/* Content Area - will be filled by child routes */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 border border-gray-200 dark:border-gray-700">
-              {/* This is where child routes will render */}
-              <Outlet />
             </div>
           </div>
         </main>
