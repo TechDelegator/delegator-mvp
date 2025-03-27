@@ -607,45 +607,50 @@ const ApplyLeave: React.FC = () => {
 
     // Update leave balance if emergency leave (since it's auto-approved)
     if (isEmergency) {
-      if (leaveBalance) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-        // Create updated balance
-        const updatedBalance = { ...leaveBalance };
+      // Get current balances from localStorage
+      const storedBalances = localStorage.getItem("leave-app-balances");
+      if (storedBalances) {
+        let balances: LeaveBalance[] = JSON.parse(storedBalances);
 
-        // Deduct from appropriate balance
-        if (leaveType === "paid") {
-          updatedBalance.paid = Math.max(0, updatedBalance.paid - diffDays);
-        } else if (leaveType === "sick") {
-          updatedBalance.sick = Math.max(0, updatedBalance.sick - diffDays);
-        } else if (leaveType === "casual") {
-          updatedBalance.casual = Math.max(0, updatedBalance.casual - diffDays);
-        } else if (leaveType === "miscellaneous") {
-          updatedBalance.miscellaneous = Math.max(
-            0,
-            updatedBalance.miscellaneous - diffDays
-          );
-        }
+        // Find the user's balance
+        const userBalanceIndex = balances.findIndex((b) => b.userId === userId);
 
-        // Update in localStorage
-        const storedBalances = localStorage.getItem("leave-app-balances");
-        if (storedBalances) {
-          const balances: LeaveBalance[] = JSON.parse(storedBalances);
-          const updatedBalances = balances.map((b) =>
-            b.userId === userId ? updatedBalance : b
-          );
-          localStorage.setItem(
-            "leave-app-balances",
-            JSON.stringify(updatedBalances)
-          );
+        if (userBalanceIndex !== -1) {
+          // Create a copy of the user's balance
+          const updatedBalance = { ...balances[userBalanceIndex] };
+
+          // Deduct from appropriate balance
+          if (leaveType === "paid") {
+            updatedBalance.paid = Math.max(0, updatedBalance.paid - diffDays);
+          } else if (leaveType === "sick") {
+            updatedBalance.sick = Math.max(0, updatedBalance.sick - diffDays);
+          } else if (leaveType === "casual") {
+            updatedBalance.casual = Math.max(
+              0,
+              updatedBalance.casual - diffDays
+            );
+          } else if (leaveType === "miscellaneous") {
+            updatedBalance.miscellaneous = Math.max(
+              0,
+              updatedBalance.miscellaneous - diffDays
+            );
+          }
+
+          // Update the balances array
+          balances[userBalanceIndex] = updatedBalance;
+
+          // Save updated balances to localStorage
+          localStorage.setItem("leave-app-balances", JSON.stringify(balances));
         }
       }
     }
 
-    // Show success message (in a real app, you might want to add a toast notification)
+    // Show success message
     alert(
       isEmergency
         ? "Your emergency leave has been automatically approved."
