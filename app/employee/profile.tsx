@@ -27,10 +27,13 @@ type LeaveApplication = {
   type: "paid" | "sick" | "casual" | "miscellaneous";
   startDate: string;
   endDate: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "recalled";
   reason: string;
   appliedOn: string;
   isEmergency: boolean;
+  rejectionReason?: string;
+  recalledOn?: string;
+  recallReason?: string;
 };
 
 const Profile: React.FC = () => {
@@ -50,6 +53,7 @@ const Profile: React.FC = () => {
     rejected: 0,
     pending: 0,
     emergency: 0,
+    recalled: 0,
   });
 
   useEffect(() => {
@@ -97,6 +101,8 @@ const Profile: React.FC = () => {
           pending: userApplications.filter((a) => a.status === "pending")
             .length,
           emergency: userApplications.filter((a) => a.isEmergency).length,
+          recalled: userApplications.filter((a) => a.status === "recalled")
+            .length,
         };
         setLeaveStats(stats);
       }
@@ -173,6 +179,52 @@ const Profile: React.FC = () => {
     if (total === 0) return 0;
     return Math.round((used / total) * 100);
   };
+
+  // Calculate recalled leave stats
+  const calculateRecalledStats = () => {
+    const recalledLeaves = leaveApplications.filter(
+      (leave) => leave.status === "recalled"
+    );
+
+    // Calculate days by type
+    const byType = {
+      paid: 0,
+      sick: 0,
+      casual: 0,
+      miscellaneous: 0,
+    };
+
+    recalledLeaves.forEach((leave) => {
+      const days = calculateDuration(leave.startDate, leave.endDate);
+      byType[leave.type] += days;
+    });
+
+    // Calculate total days recalled
+    const totalDays = Object.values(byType).reduce(
+      (sum, days) => sum + days,
+      0
+    );
+
+    // Get most recent recalled leave
+    let mostRecent = null;
+    if (recalledLeaves.length > 0) {
+      const sorted = [...recalledLeaves].sort(
+        (a, b) =>
+          new Date(b.recalledOn || "").getTime() -
+          new Date(a.recalledOn || "").getTime()
+      );
+      mostRecent = sorted[0];
+    }
+
+    return {
+      totalLeaves: recalledLeaves.length,
+      totalDays,
+      byType,
+      mostRecent,
+    };
+  };
+
+  const recalledStats = calculateRecalledStats();
 
   return (
     <div>
@@ -342,8 +394,6 @@ const Profile: React.FC = () => {
                   Used: {leaveDaysByType.paid} days
                 </div>
               </div>
-
-              {/* Sick Leave */}
               <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
                 <h4 className="text-sm font-medium text-purple-800 dark:text-purple-300 mb-2">
                   Sick Leave
@@ -442,7 +492,7 @@ const Profile: React.FC = () => {
               Leave Statistics
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-6">
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
                   {leaveStats.totalRequested}
@@ -473,6 +523,14 @@ const Profile: React.FC = () => {
                 </div>
                 <div className="text-xs text-red-600 dark:text-red-400">
                   Rejected
+                </div>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {leaveStats.recalled}
+                </div>
+                <div className="text-xs text-orange-600 dark:text-orange-400">
+                  Recalled
                 </div>
               </div>
               <div className="bg-amber-50 dark:bg-amber-900/30 rounded-lg p-3 text-center">
@@ -607,6 +665,119 @@ const Profile: React.FC = () => {
             </div>
           </div>
 
+          {/* Recalled Leaves Stats - New Section */}
+          {recalledStats.totalLeaves > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+              <h3 className="text-md font-medium text-gray-900 dark:text-white mb-4">
+                Recalled Leaves Summary
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-4">
+                  <div className="flex justify-between mb-2">
+                    <h4 className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                      Recalled Leave Overview
+                    </h4>
+                    <span className="text-sm font-semibold text-orange-800 dark:text-orange-300">
+                      {recalledStats.totalLeaves} leaves
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-orange-700 dark:text-orange-400 mb-2">
+                    You have recalled a total of {recalledStats.totalDays} leave
+                    days this year.
+                  </p>
+
+                  <div className="space-y-1 mt-3">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-orange-700 dark:text-orange-400">
+                        Paid leaves recalled:
+                      </span>
+                      <span className="font-medium text-orange-800 dark:text-orange-300">
+                        {recalledStats.byType.paid} days
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-orange-700 dark:text-orange-400">
+                        Sick leaves recalled:
+                      </span>
+                      <span className="font-medium text-orange-800 dark:text-orange-300">
+                        {recalledStats.byType.sick} days
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-orange-700 dark:text-orange-400">
+                        Casual leaves recalled:
+                      </span>
+                      <span className="font-medium text-orange-800 dark:text-orange-300">
+                        {recalledStats.byType.casual} days
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-orange-700 dark:text-orange-400">
+                        Misc. leaves recalled:
+                      </span>
+                      <span className="font-medium text-orange-800 dark:text-orange-300">
+                        {recalledStats.byType.miscellaneous} days
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {recalledStats.mostRecent && (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Most Recent Recalled Leave
+                    </h4>
+
+                    <div className="text-xs text-gray-600 dark:text-gray-400 space-y-2">
+                      <div className="flex justify-between">
+                        <span>Period:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          {formatDate(recalledStats.mostRecent.startDate)} -{" "}
+                          {formatDate(recalledStats.mostRecent.endDate)}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Type:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200 capitalize">
+                          {recalledStats.mostRecent.type}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>Recalled on:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200">
+                          {recalledStats.mostRecent.recalledOn
+                            ? formatDate(recalledStats.mostRecent.recalledOn)
+                            : "Unknown"}
+                        </span>
+                      </div>
+
+                      {recalledStats.mostRecent.recallReason && (
+                        <div className="mt-2">
+                          <span className="block">Reason:</span>
+                          <span className="block mt-1 p-2 bg-gray-100 dark:bg-gray-600 rounded text-gray-800 dark:text-gray-200">
+                            {recalledStats.mostRecent.recallReason}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                <p>
+                  Recalling leaves helps manage your time effectively. When you
+                  recall an approved leave, the days are restored to your leave
+                  balance automatically.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Account Settings */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-md font-medium text-gray-900 dark:text-white mb-4">
@@ -659,6 +830,21 @@ const Profile: React.FC = () => {
                       className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
                     >
                       Notifications for team members' leaves
+                    </label>
+                  </div>
+                  {/* New notification preference for recalls */}
+                  <div className="flex items-center">
+                    <input
+                      id="recallNotif"
+                      type="checkbox"
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      defaultChecked
+                    />
+                    <label
+                      htmlFor="recallNotif"
+                      className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      Notifications when your leaves are recalled
                     </label>
                   </div>
                 </div>
@@ -723,6 +909,17 @@ const Profile: React.FC = () => {
       )}
     </div>
   );
+};
+
+// Helper function to format dates
+const formatDate = (dateString: string) => {
+  if (!dateString) return "N/A";
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
+  return new Date(dateString).toLocaleDateString(undefined, options);
 };
 
 export default Profile;

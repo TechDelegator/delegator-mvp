@@ -8,10 +8,13 @@ type LeaveApplication = {
   type: "paid" | "sick" | "casual" | "miscellaneous";
   startDate: string;
   endDate: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "recalled";
   reason: string;
   appliedOn: string;
   isEmergency: boolean;
+  rejectionReason?: string;
+  recalledOn?: string;
+  recallReason?: string;
 };
 
 type User = {
@@ -72,7 +75,7 @@ const LeaveCalendar: React.FC = () => {
 
       if (storedApplications) {
         const applications: LeaveApplication[] = JSON.parse(storedApplications);
-        // Only show approved leaves
+        // Only show approved leaves - filter out recalled ones too
         const approvedLeaves = applications.filter(
           (leave) => leave.status === "approved"
         );
@@ -188,7 +191,7 @@ const LeaveCalendar: React.FC = () => {
       const date = new Date(year, month, day);
       date.setHours(0, 0, 0, 0);
 
-      // Find leaves for this day
+      // Find leaves for this day - excluding recalled leaves
       const dayLeaves = leaves.filter((leave) => {
         const startDate = new Date(leave.startDate);
         const endDate = new Date(leave.endDate);
@@ -197,7 +200,9 @@ const LeaveCalendar: React.FC = () => {
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(0, 0, 0, 0);
 
-        return date >= startDate && date <= endDate;
+        return (
+          date >= startDate && date <= endDate && leave.status === "approved"
+        );
       });
 
       currentMonthDays.push({
@@ -380,7 +385,7 @@ const LeaveCalendar: React.FC = () => {
       type: leaveType,
       startDate: selectionStart.toISOString().split("T")[0],
       endDate: selectionEnd.toISOString().split("T")[0],
-      status: isEmergency ? "approved" : "pending", // Emergency leaves are auto-approved
+      status: isEmergency ? ("approved" as const) : ("pending" as const), // Emergency leaves are auto-approved
       reason: leaveReason,
       appliedOn: new Date().toISOString(),
       isEmergency: isEmergency,
@@ -535,7 +540,7 @@ const LeaveCalendar: React.FC = () => {
       applications.forEach((leave) => {
         if (
           leave.userId === userId &&
-          (leave.status === "approved" || leave.status === "pending")
+          (leave.status === "approved" || leave.status === "pending") // Don't check recalled or rejected leaves
         ) {
           const leaveStart = new Date(leave.startDate);
           const leaveEnd = new Date(leave.endDate);
@@ -809,6 +814,37 @@ const LeaveCalendar: React.FC = () => {
             <span className="text-sm mr-2">🚨</span>
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Emergency Leave
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Info about Recalled Leaves */}
+      <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Leave Status Information
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+          This calendar displays only approved leaves. Pending, rejected, and
+          recalled leaves are not shown.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center">
+            <div className="w-4 h-4 rounded-full bg-green-500 dark:bg-green-600 mr-2"></div>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Approved - Visible on calendar
+            </span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-4 rounded-full bg-yellow-500 dark:bg-yellow-600 mr-2"></div>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Pending - Not shown
+            </span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-4 h-4 rounded-full bg-orange-500 dark:bg-orange-600 mr-2"></div>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Recalled - Not shown
             </span>
           </div>
         </div>

@@ -15,11 +15,13 @@ type LeaveApplication = {
   type: "paid" | "sick" | "casual" | "miscellaneous";
   startDate: string;
   endDate: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "recalled";
   reason: string;
   appliedOn: string;
   isEmergency: boolean;
   rejectionReason?: string;
+  recalledOn?: string;
+  recallReason?: string;
 };
 
 type LeaveBalance = {
@@ -40,6 +42,7 @@ const ManagerDashboard: React.FC = () => {
   const [recentlyProcessed, setRecentlyProcessed] = useState<
     LeaveApplication[]
   >([]);
+  const [recalledLeaves, setRecalledLeaves] = useState<LeaveApplication[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,6 +102,19 @@ const ManagerDashboard: React.FC = () => {
           .slice(0, 5);
 
         setRecentlyProcessed(processedLeaves);
+
+        // Get recently recalled leaves (last 5)
+        const recalled = applications
+          .filter((app) => app.status === "recalled")
+          .sort(
+            (a, b) =>
+              new Date(b.recalledOn || "").getTime() -
+              new Date(a.recalledOn || "").getTime()
+          )
+          .slice(0, 5);
+
+        setRecalledLeaves(recalled);
+
         setUsers(allUsers);
       }
 
@@ -154,6 +170,8 @@ const ManagerDashboard: React.FC = () => {
         return "bg-green-100 text-green-800 border-green-200";
       case "rejected":
         return "bg-red-100 text-red-800 border-red-200";
+      case "recalled":
+        return "bg-orange-100 text-orange-800 border-orange-200";
       default:
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
     }
@@ -176,7 +194,7 @@ const ManagerDashboard: React.FC = () => {
         // Update the leave status to 'approved'
         const updatedApplications = applications.map((leave) => {
           if (leave.id === leaveId) {
-            return { ...leave, status: "approved" };
+            return { ...leave, status: "approved" as const };
           }
           return leave;
         });
@@ -234,7 +252,10 @@ const ManagerDashboard: React.FC = () => {
             prevLeaves.filter((leave) => leave.id !== leaveId)
           );
           setRecentlyProcessed((prev) =>
-            [{ ...approvedLeave, status: "approved" }, ...prev].slice(0, 5)
+            [{ ...approvedLeave, status: "approved" as const }, ...prev].slice(
+              0,
+              5
+            )
           );
         }
       }
@@ -260,7 +281,7 @@ const ManagerDashboard: React.FC = () => {
         if (leave.id === leaveId) {
           return {
             ...leave,
-            status: "rejected",
+            status: "rejected" as const,
             rejectionReason: rejectionReason,
           };
         }
@@ -280,7 +301,7 @@ const ManagerDashboard: React.FC = () => {
         );
         setRecentlyProcessed((prev) =>
           [
-            { ...leaveToReject, status: "rejected", rejectionReason },
+            { ...leaveToReject, status: "rejected" as const, rejectionReason },
             ...prev,
           ].slice(0, 5)
         );
@@ -324,6 +345,11 @@ const ManagerDashboard: React.FC = () => {
           {pendingLeaves.filter((l) => l.isEmergency).length > 0 && (
             <div className="ml-2 bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium dark:bg-red-900 dark:text-red-200 animate-pulse">
               {pendingLeaves.filter((l) => l.isEmergency).length} Emergency
+            </div>
+          )}
+          {recalledLeaves.length > 0 && (
+            <div className="ml-2 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium dark:bg-orange-900 dark:text-orange-200">
+              {recalledLeaves.length} Recalled
             </div>
           )}
           <button
@@ -536,6 +562,71 @@ const ManagerDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Recalled Leaves */}
+      {recalledLeaves.length > 0 && (
+        <div className="mt-8 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Recently Recalled Leaves
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            {recalledLeaves.map((leave) => (
+              <div
+                key={leave.id}
+                className="border border-orange-200 dark:border-orange-800 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm"
+              >
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {getUserName(leave.userId).charAt(0)}
+                    </div>
+                    <div className="ml-4">
+                      <h4 className="text-md font-semibold text-gray-900 dark:text-white">
+                        {getUserName(leave.userId)}
+                      </h4>
+                      <div className="flex items-center flex-wrap gap-2 mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLeaveTypeColorClass(
+                            leave.type
+                          )}`}
+                        >
+                          {leave.type.charAt(0).toUpperCase() +
+                            leave.type.slice(1)}
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
+                          Recalled
+                        </span>
+                        {leave.isEmergency && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
+                            Emergency
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 md:mt-0 ml-0 md:ml-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {formatDate(leave.startDate)} -{" "}
+                      {formatDate(leave.endDate)} (
+                      {calculateDuration(leave.startDate, leave.endDate)}{" "}
+                      day(s))
+                    </p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                      Recalled on: {formatDate(leave.recalledOn || "")}
+                    </p>
+                    {leave.recallReason && (
+                      <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
+                        Reason: {leave.recallReason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recently Processed Leaves */}
       {recentlyProcessed.length > 0 && (
