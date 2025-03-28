@@ -12,6 +12,7 @@ type LeaveApplication = {
   reason: string;
   appliedOn: string;
   isEmergency: boolean;
+  managerId?: string; // Add managerId field to track assigned manager
 };
 
 type LeaveBalance = {
@@ -24,6 +25,20 @@ type LeaveBalance = {
   maxSick: number;
   maxCasual: number;
   maxMiscellaneous: number;
+};
+
+// User type for manager information
+type User = {
+  id: string;
+  name: string;
+  role: "employee" | "admin" | "manager";
+  email: string;
+};
+
+// Manager assignment type
+type ManagerAssignment = {
+  managerId: string;
+  employeeIds: string[];
 };
 
 const ApplyLeave: React.FC = () => {
@@ -40,6 +55,9 @@ const ApplyLeave: React.FC = () => {
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Add state for assigned manager
+  const [assignedManager, setAssignedManager] = useState<User | null>(null);
 
   // Sample public holidays (in a real app, this would come from an API or database)
   const publicHolidays = [
@@ -71,6 +89,40 @@ const ApplyLeave: React.FC = () => {
   });
 
   useEffect(() => {
+    // Fetch the assigned manager
+    const fetchAssignedManager = () => {
+      // Get all users
+      const storedUsers = localStorage.getItem("leave-app-users");
+      // Get manager assignments
+      const storedAssignments = localStorage.getItem(
+        "leave-app-manager-assignments"
+      );
+
+      if (storedUsers && storedAssignments && userId) {
+        const users: User[] = JSON.parse(storedUsers);
+        const assignments: ManagerAssignment[] = JSON.parse(storedAssignments);
+
+        // Find which manager this employee is assigned to
+        let foundManagerId: string | null = null;
+        for (const assignment of assignments) {
+          if (assignment.employeeIds.includes(userId)) {
+            foundManagerId = assignment.managerId;
+            break;
+          }
+        }
+
+        // Get manager's details
+        if (foundManagerId) {
+          const manager = users.find((u) => u.id === foundManagerId);
+          if (manager) {
+            setAssignedManager(manager);
+          }
+        }
+      }
+    };
+
+    fetchAssignedManager();
+
     // Set default dates (today) for regular leaves too
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
@@ -140,7 +192,7 @@ const ApplyLeave: React.FC = () => {
     }
 
     // Rest of your existing code...
-  }, [userId, location.search]);
+  }, [userId, location.search, startDate, endDate]);
 
   // Check for public holidays whenever date range changes
   useEffect(() => {
@@ -252,6 +304,67 @@ const ApplyLeave: React.FC = () => {
     }
   }, [userId, location.search]);
 
+  // Fetch leave balance
+  useEffect(() => {
+    // Fetch leave balance from localStorage or initialize if not exists
+    const fetchLeaveBalance = () => {
+      const storedBalances = localStorage.getItem("leave-app-balances");
+
+      if (storedBalances) {
+        const balances: LeaveBalance[] = JSON.parse(storedBalances);
+        let userBalance = balances.find((b) => b.userId === userId);
+
+        if (userBalance) {
+          setLeaveBalance(userBalance);
+        } else {
+          // Initialize new balance for user
+          const newBalance: LeaveBalance = {
+            userId: userId || "",
+            paid: 12,
+            sick: 12,
+            casual: 12,
+            miscellaneous: 12,
+            maxPaid: 12,
+            maxSick: 12,
+            maxCasual: 12,
+            maxMiscellaneous: 12,
+          };
+
+          // Save to localStorage
+          const updatedBalances = [...balances, newBalance];
+          localStorage.setItem(
+            "leave-app-balances",
+            JSON.stringify(updatedBalances)
+          );
+          setLeaveBalance(newBalance);
+        }
+      } else {
+        // No balances in localStorage, create new entry
+        const newBalance: LeaveBalance = {
+          userId: userId || "",
+          paid: 12,
+          sick: 12,
+          casual: 12,
+          miscellaneous: 12,
+          maxPaid: 12,
+          maxSick: 12,
+          maxCasual: 12,
+          maxMiscellaneous: 12,
+        };
+
+        localStorage.setItem(
+          "leave-app-balances",
+          JSON.stringify([newBalance])
+        );
+        setLeaveBalance(newBalance);
+      }
+    };
+
+    if (userId) {
+      fetchLeaveBalance();
+    }
+  }, [userId]);
+
   const validateLeaveApplication = (): string[] => {
     const errors: string[] = [];
 
@@ -259,6 +372,13 @@ const ApplyLeave: React.FC = () => {
     if (!startDate) errors.push("Start date is required");
     if (!endDate) errors.push("End date is required");
     if (!reason) errors.push("Reason is required");
+
+    // Check if a manager is assigned
+    if (!assignedManager && !isEmergency) {
+      errors.push(
+        "You need an assigned manager to apply for leave. Please contact admin."
+      );
+    }
 
     if (leaveType === "sick" && !isEmergency && reason.length < 10) {
       errors.push(
@@ -586,6 +706,8 @@ const ApplyLeave: React.FC = () => {
       reason,
       appliedOn: new Date().toISOString(),
       isEmergency,
+      // Add the manager ID to the leave application if it exists
+      ...(assignedManager && { managerId: assignedManager.id }),
     };
 
     // Get existing applications from localStorage
@@ -654,6 +776,8 @@ const ApplyLeave: React.FC = () => {
     alert(
       isEmergency
         ? "Your emergency leave has been automatically approved."
+        : assignedManager
+        ? `Your leave application has been submitted for approval to ${assignedManager.name}.`
         : "Your leave application has been submitted for approval."
     );
 
@@ -670,6 +794,38 @@ const ApplyLeave: React.FC = () => {
       <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
         {isEmergency ? "Emergency Leave Application" : "Apply for Leave"}
       </h2>
+
+      {/* Manager information */}
+      {!isEmergency && (
+        <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Your Request Will Be Sent To:
+          </h3>
+          {assignedManager ? (
+            <div className="flex items-center">
+              <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-semibold">
+                {assignedManager.name.charAt(0)}
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {assignedManager.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Manager
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 dark:bg-yellow-900/30 p-2 rounded-md">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                <span className="font-medium">Warning:</span> You don't have a
+                manager assigned yet. Only emergency leaves can be applied
+                without a manager. Please contact admin.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {isEmergency && (
         <div className="mb-4 bg-red-50 dark:bg-red-900 rounded-lg p-3 border border-red-200 dark:border-red-700">
@@ -1258,7 +1414,7 @@ const ApplyLeave: React.FC = () => {
             } rounded-md focus:outline-none ${
               isSubmitting ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            disabled={isSubmitting}
+            disabled={isSubmitting || (!assignedManager && !isEmergency)}
           >
             {isSubmitting
               ? "Submitting..."

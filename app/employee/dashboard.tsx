@@ -36,6 +36,12 @@ type LeaveApplication = {
   recallReason?: string;
 };
 
+// New type for manager assignments
+type ManagerAssignment = {
+  managerId: string;
+  employeeIds: string[];
+};
+
 const Dashboard: React.FC = () => {
   const { userId } = useParams();
   const [user, setUser] = useState<User | null>(null);
@@ -47,6 +53,7 @@ const Dashboard: React.FC = () => {
   const [notifications, setNotifications] = useState<string[]>([]);
   const [recallModalOpen, setRecallModalOpen] = useState<string | null>(null);
   const [recallReason, setRecallReason] = useState<string>("");
+  const [assignedManager, setAssignedManager] = useState<User | null>(null);
 
   const navigate = useNavigate();
 
@@ -59,6 +66,32 @@ const Dashboard: React.FC = () => {
         const currentUser = users.find((u) => u.id === userId);
         if (currentUser) {
           setUser(currentUser);
+        }
+
+        // Get manager assignments
+        const storedAssignments = localStorage.getItem(
+          "leave-app-manager-assignments"
+        );
+        if (storedAssignments && userId) {
+          const assignments: ManagerAssignment[] =
+            JSON.parse(storedAssignments);
+
+          // Find which manager this employee is assigned to
+          let foundManagerId: string | null = null;
+          for (const assignment of assignments) {
+            if (assignment.employeeIds.includes(userId)) {
+              foundManagerId = assignment.managerId;
+              break;
+            }
+          }
+
+          // Get manager's details
+          if (foundManagerId) {
+            const manager = users.find((u) => u.id === foundManagerId);
+            if (manager) {
+              setAssignedManager(manager);
+            }
+          }
         }
       }
     };
@@ -110,6 +143,17 @@ const Dashboard: React.FC = () => {
         );
       }
 
+      // Add notification about assigned manager
+      if (assignedManager) {
+        notes.push(
+          `Your leave requests will be reviewed by ${assignedManager.name}.`
+        );
+      } else {
+        notes.push(
+          "You don't have a manager assigned yet. Contact admin for help."
+        );
+      }
+
       // Add notification for recently recalled leaves
       const recentlyRecalled = leaveApplications.filter(
         (a) =>
@@ -137,7 +181,7 @@ const Dashboard: React.FC = () => {
     setTimeout(() => {
       generateNotifications();
     }, 500);
-  }, [userId]);
+  }, [userId]); // Removed assignedManager from dependencies
 
   // Get upcoming leaves (next 30 days)
   const getUpcomingLeaves = () => {
@@ -396,6 +440,32 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Manager Information Card - New Section */}
+      <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Your Manager
+        </h3>
+        {assignedManager ? (
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-semibold text-lg">
+              {assignedManager.name.charAt(0)}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {assignedManager.name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {assignedManager.email}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            You don't have a manager assigned yet. Please contact an admin.
+          </p>
+        )}
+      </div>
 
       {/* Quick Actions - Mobile optimized */}
       <div className="mb-4">
@@ -720,6 +790,10 @@ const Dashboard: React.FC = () => {
           </li>
           <li>
             You can recall approved or pending leaves if your plans change
+          </li>
+          <li>
+            Your leave requests will be reviewed by{" "}
+            {assignedManager ? assignedManager.name : "your assigned manager"}
           </li>
         </ul>
       </div>
