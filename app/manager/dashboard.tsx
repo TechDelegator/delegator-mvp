@@ -36,9 +36,16 @@ type LeaveBalance = {
   maxMiscellaneous: number;
 };
 
+// New type for manager-employee assignments
+type ManagerAssignment = {
+  managerId: string;
+  employeeIds: string[];
+};
+
 const ManagerDashboard: React.FC = () => {
   const { userId } = useParams();
   const [pendingLeaves, setPendingLeaves] = useState<LeaveApplication[]>([]);
+  // Keep these since they're being set and will be used in the UI
   const [recentlyProcessed, setRecentlyProcessed] = useState<
     LeaveApplication[]
   >([]);
@@ -49,6 +56,9 @@ const ManagerDashboard: React.FC = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [filter, setFilter] = useState("all");
+
+  // State for manager's assigned employees
+  const [assignedEmployees, setAssignedEmployees] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
@@ -63,6 +73,9 @@ const ManagerDashboard: React.FC = () => {
       setIsLoading(true);
       const storedApplications = localStorage.getItem("leave-app-applications");
       const storedUsers = localStorage.getItem("leave-app-users");
+      const storedAssignments = localStorage.getItem(
+        "leave-app-manager-assignments"
+      );
 
       if (storedApplications && storedUsers) {
         const applications: LeaveApplication[] = JSON.parse(storedApplications);
@@ -74,13 +87,28 @@ const ManagerDashboard: React.FC = () => {
           setCurrentUser(manager);
         }
 
-        // Get pending applications
-        const pendingApplications = applications.filter(
-          (app) => app.status === "pending"
+        // Get the manager's assigned employees from the assignments
+        let assignedEmployeeIds: string[] = [];
+        if (storedAssignments) {
+          const assignments: ManagerAssignment[] =
+            JSON.parse(storedAssignments);
+          const managerAssignment = assignments.find(
+            (a) => a.managerId === userId
+          );
+          if (managerAssignment) {
+            assignedEmployeeIds = managerAssignment.employeeIds;
+            setAssignedEmployees(assignedEmployeeIds);
+          }
+        }
+
+        // Filter applications to only include those from assigned employees
+        const filteredPendingApplications = applications.filter(
+          (app) =>
+            app.status === "pending" && assignedEmployeeIds.includes(app.userId)
         );
 
         // Sort by emergency first, then by application date
-        pendingApplications.sort((a, b) => {
+        filteredPendingApplications.sort((a, b) => {
           if (a.isEmergency && !b.isEmergency) return -1;
           if (!a.isEmergency && b.isEmergency) return 1;
           return (
@@ -88,12 +116,14 @@ const ManagerDashboard: React.FC = () => {
           );
         });
 
-        setPendingLeaves(pendingApplications);
+        setPendingLeaves(filteredPendingApplications);
 
-        // Get recently processed leaves (last 10)
+        // Get recently processed leaves from assigned employees only
         const processedLeaves = applications
           .filter(
-            (app) => app.status === "approved" || app.status === "rejected"
+            (app) =>
+              (app.status === "approved" || app.status === "rejected") &&
+              assignedEmployeeIds.includes(app.userId)
           )
           .sort(
             (a, b) =>
@@ -103,9 +133,13 @@ const ManagerDashboard: React.FC = () => {
 
         setRecentlyProcessed(processedLeaves);
 
-        // Get recently recalled leaves (last 5)
+        // Get recently recalled leaves from assigned employees only
         const recalled = applications
-          .filter((app) => app.status === "recalled")
+          .filter(
+            (app) =>
+              app.status === "recalled" &&
+              assignedEmployeeIds.includes(app.userId)
+          )
           .sort(
             (a, b) =>
               new Date(b.recalledOn || "").getTime() -
@@ -191,6 +225,12 @@ const ManagerDashboard: React.FC = () => {
       const leaveToApprove = applications.find((leave) => leave.id === leaveId);
 
       if (leaveToApprove) {
+        // Check if employee is assigned to this manager
+        if (!assignedEmployees.includes(leaveToApprove.userId)) {
+          alert("You can only approve leaves for employees assigned to you.");
+          return;
+        }
+
         // Update the leave status to 'approved'
         const updatedApplications = applications.map((leave) => {
           if (leave.id === leaveId) {
@@ -276,6 +316,12 @@ const ManagerDashboard: React.FC = () => {
       const applications: LeaveApplication[] = JSON.parse(storedApplications);
       const leaveToReject = applications.find((leave) => leave.id === leaveId);
 
+      // Check if employee is assigned to this manager
+      if (leaveToReject && !assignedEmployees.includes(leaveToReject.userId)) {
+        alert("You can only reject leaves for employees assigned to you.");
+        return;
+      }
+
       // Update the leave status to 'rejected' and add rejection reason
       const updatedApplications = applications.map((leave) => {
         if (leave.id === leaveId) {
@@ -359,6 +405,33 @@ const ManagerDashboard: React.FC = () => {
             Logout
           </button>
         </div>
+      </div>
+
+      {/* Assigned Employees Status */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm mb-6">
+        <h3 className="text-md font-medium text-gray-900 dark:text-white mb-2">
+          Your Team
+        </h3>
+        {assignedEmployees.length === 0 ? (
+          <p className="text-gray-600 dark:text-gray-400">
+            No employees are currently assigned to you. Please contact an admin
+            to assign team members.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {assignedEmployees.map((empId) => {
+              const employee = users.find((u) => u.id === empId);
+              return employee ? (
+                <div
+                  key={empId}
+                  className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-sm"
+                >
+                  {employee.name}
+                </div>
+              ) : null;
+            })}
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -562,71 +635,6 @@ const ManagerDashboard: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Recalled Leaves */}
-      {recalledLeaves.length > 0 && (
-        <div className="mt-8 mb-8">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Recently Recalled Leaves
-          </h3>
-          <div className="grid grid-cols-1 gap-4">
-            {recalledLeaves.map((leave) => (
-              <div
-                key={leave.id}
-                className="border border-orange-200 dark:border-orange-800 rounded-xl p-4 bg-white dark:bg-gray-800 shadow-sm"
-              >
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {getUserName(leave.userId).charAt(0)}
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="text-md font-semibold text-gray-900 dark:text-white">
-                        {getUserName(leave.userId)}
-                      </h4>
-                      <div className="flex items-center flex-wrap gap-2 mt-1">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLeaveTypeColorClass(
-                            leave.type
-                          )}`}
-                        >
-                          {leave.type.charAt(0).toUpperCase() +
-                            leave.type.slice(1)}
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300">
-                          Recalled
-                        </span>
-                        {leave.isEmergency && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-                            Emergency
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 md:mt-0 ml-0 md:ml-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {formatDate(leave.startDate)} -{" "}
-                      {formatDate(leave.endDate)} (
-                      {calculateDuration(leave.startDate, leave.endDate)}{" "}
-                      day(s))
-                    </p>
-                    <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
-                      Recalled on: {formatDate(leave.recalledOn || "")}
-                    </p>
-                    {leave.recallReason && (
-                      <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
-                        Reason: {leave.recallReason}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Recently Processed Leaves */}
       {recentlyProcessed.length > 0 && (

@@ -10,5 +10,8 @@ export default [
     route('dashboard/employee/:userId/profile', "./employee/profile.tsx"),
   ],
   ),
+  layout("./admin/layout.tsx", [
+    route("dashboard/admin/:userId", "./admin/dashboard.tsx")
+  ]),
   route("dashboard/manager/:userId", "./manager/dashboard.tsx")
 ] satisfies RouteConfig;
