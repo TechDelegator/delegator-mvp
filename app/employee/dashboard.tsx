@@ -773,7 +773,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Leave Policy Reminders - Mobile optimized */}
+      {/* Leave Policy Reminders - Mobile optimized 
       <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Leave Policy Reminders
@@ -796,7 +796,7 @@ const Dashboard: React.FC = () => {
             {assignedManager ? assignedManager.name : "your assigned manager"}
           </li>
         </ul>
-      </div>
+      </div> */}
 
       {/* Leave Strategy Suggestions - Mobile optimized */}
       <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
