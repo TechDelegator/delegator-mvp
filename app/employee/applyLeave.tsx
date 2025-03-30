@@ -77,7 +77,7 @@ const ApplyLeave: React.FC = () => {
   const [holidayWarnings, setHolidayWarnings] = useState<
     { date: string; name: string }[]
   >([]);
-  // State to track emergency leave usage
+
   const [emergencyLeaveCount, setEmergencyLeaveCount] = useState<{
     last30Days: number;
     lastYear: number;
@@ -88,6 +88,7 @@ const ApplyLeave: React.FC = () => {
     mostRecent: null,
   });
 
+  // Fetch assigned manager effect
   useEffect(() => {
     // Fetch the assigned manager
     const fetchAssignedManager = () => {
@@ -122,7 +123,10 @@ const ApplyLeave: React.FC = () => {
     };
 
     fetchAssignedManager();
+  }, [userId]);
 
+  // Set default dates and handle emergency parameter effect
+  useEffect(() => {
     // Set default dates (today) for regular leaves too
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
@@ -196,126 +200,9 @@ const ApplyLeave: React.FC = () => {
         setEndDate(formattedDate);
       }
     }
+  }, [location.search, startDate, endDate]);
 
-    // Rest of your existing code...
-    // Check for past emergency leave usage
-    useEffect(() => {
-      const checkEmergencyLeaveUsage = () => {
-        const storedApplications = localStorage.getItem(
-          "leave-app-applications"
-        );
-        if (storedApplications) {
-          const applications: LeaveApplication[] =
-            JSON.parse(storedApplications);
-          const userApplications = applications.filter(
-            (a) => a.userId === userId
-          );
-
-          // Check for emergency leaves in the past 30 days
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-          const last30DaysEmergencyLeaves = userApplications.filter(
-            (leave) =>
-              leave.isEmergency && new Date(leave.appliedOn) >= thirtyDaysAgo
-          );
-
-          // Check for emergency leaves in the past year
-          const oneYearAgo = new Date();
-          oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-          const lastYearEmergencyLeaves = userApplications.filter(
-            (leave) =>
-              leave.isEmergency && new Date(leave.appliedOn) >= oneYearAgo
-          );
-
-          // Find most recent emergency leave
-          let mostRecent: string | null = null;
-          if (lastYearEmergencyLeaves.length > 0) {
-            const sortedLeaves = [...lastYearEmergencyLeaves].sort(
-              (a, b) =>
-                new Date(b.appliedOn).getTime() -
-                new Date(a.appliedOn).getTime()
-            );
-
-            if (sortedLeaves.length > 0) {
-              mostRecent = sortedLeaves[0].startDate;
-            }
-          }
-
-          setEmergencyLeaveCount({
-            last30Days: last30DaysEmergencyLeaves.length,
-            lastYear: lastYearEmergencyLeaves.length,
-            mostRecent,
-          });
-        }
-      };
-
-      checkEmergencyLeaveUsage();
-
-      const params = new URLSearchParams(location.search);
-      const reapplyLeaveId = params.get("reapply");
-
-      if (reapplyLeaveId) {
-        // Get existing applications from localStorage
-        const storedApplications = localStorage.getItem(
-          "leave-app-applications"
-        );
-
-        if (storedApplications) {
-          const applications: LeaveApplication[] =
-            JSON.parse(storedApplications);
-          const leaveToReapply = applications.find(
-            (leave) => leave.id === reapplyLeaveId && leave.userId === userId
-          );
-
-          if (leaveToReapply) {
-            // Pre-fill form with data from rejected leave
-            setLeaveType(leaveToReapply.type);
-            setStartDate(leaveToReapply.startDate);
-            setEndDate(leaveToReapply.endDate);
-
-            // Add a note about reapplying
-            const reasonPrefix = "Reapplying for previously rejected leave. ";
-            if (!leaveToReapply.reason.startsWith(reasonPrefix)) {
-              setReason(reasonPrefix + leaveToReapply.reason);
-            } else {
-              setReason(leaveToReapply.reason);
-            }
-          }
-        }
-      }
-    }, [userId, location.search]);
-  }, [userId, location.search, startDate, endDate]);
-  // Check for public holidays whenever date range changes
-  useEffect(() => {
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const holidays: { date: string; name: string }[] = [];
-
-      // Iterate through each day in the range
-      const currentDate = new Date(start);
-      while (currentDate <= end) {
-        const dateString = currentDate.toISOString().split("T")[0];
-
-        // Check if this date is a public holiday
-        const holiday = publicHolidays.find((h) => h.date === dateString);
-        if (holiday) {
-          holidays.push({ date: dateString, name: holiday.name });
-        }
-
-        // Move to next day
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-
-      setHolidayWarnings(holidays);
-    } else {
-      setHolidayWarnings([]);
-    }
-  }, [startDate, endDate]);
-
-  // Check for past emergency leave usage
+  // Check for emergency leave usage
   useEffect(() => {
     const checkEmergencyLeaveUsage = () => {
       const storedApplications = localStorage.getItem("leave-app-applications");
@@ -365,7 +252,10 @@ const ApplyLeave: React.FC = () => {
     };
 
     checkEmergencyLeaveUsage();
+  }, [userId]);
 
+  // Handle reapply parameter
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const reapplyLeaveId = params.get("reapply");
 
@@ -396,6 +286,34 @@ const ApplyLeave: React.FC = () => {
       }
     }
   }, [userId, location.search]);
+
+  // Check for public holidays whenever date range changes
+  useEffect(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const holidays: { date: string; name: string }[] = [];
+
+      // Iterate through each day in the range
+      const currentDate = new Date(start);
+      while (currentDate <= end) {
+        const dateString = currentDate.toISOString().split("T")[0];
+
+        // Check if this date is a public holiday
+        const holiday = publicHolidays.find((h) => h.date === dateString);
+        if (holiday) {
+          holidays.push({ date: dateString, name: holiday.name });
+        }
+
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      setHolidayWarnings(holidays);
+    } else {
+      setHolidayWarnings([]);
+    }
+  }, [startDate, endDate]);
 
   // Fetch leave balance
   useEffect(() => {

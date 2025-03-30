@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch user data
+    // Fetch user data and manager assignment
     const fetchUserData = () => {
       const storedUsers = localStorage.getItem("leave-app-users");
       if (storedUsers) {
@@ -90,8 +90,13 @@ const Dashboard: React.FC = () => {
             const manager = users.find((u) => u.id === foundManagerId);
             if (manager) {
               setAssignedManager(manager);
+              console.log("Manager assigned:", manager.name); // Debug logging
             }
+          } else {
+            console.log("No manager ID found for user"); // Debug logging
           }
+        } else {
+          console.log("No manager assignments found"); // Debug logging
         }
       }
     };
@@ -129,6 +134,13 @@ const Dashboard: React.FC = () => {
       }
     };
 
+    fetchUserData();
+    fetchLeaveBalance();
+    fetchLeaveApplications();
+  }, [userId]);
+
+  // Separate useEffect for generating notifications after data is loaded
+  useEffect(() => {
     // Generate notifications based on leave applications
     const generateNotifications = () => {
       const notes: string[] = [];
@@ -143,7 +155,7 @@ const Dashboard: React.FC = () => {
         );
       }
 
-      // Add notification about assigned manager
+      // Fix: Only add the notification based on whether assignedManager exists
       if (assignedManager) {
         notes.push(
           `Your leave requests will be reviewed by ${assignedManager.name}.`
@@ -168,20 +180,16 @@ const Dashboard: React.FC = () => {
         );
       }
 
-      // Add more notifications based on business rules
       setNotifications(notes);
     };
 
-    fetchUserData();
-    fetchLeaveBalance();
-    fetchLeaveApplications();
-
-    // This should be called after the state updates, but for simplicity, we're calling it directly
-    // In a real app, use another useEffect with dependencies on leaveApplications and leaveBalance
-    setTimeout(() => {
+    // Small delay to ensure all state updates have completed
+    const timer = setTimeout(() => {
       generateNotifications();
     }, 500);
-  }, [userId]); // Removed assignedManager from dependencies
+
+    return () => clearTimeout(timer);
+  }, [leaveApplications, leaveBalance, assignedManager]);
 
   // Get upcoming leaves (next 30 days)
   const getUpcomingLeaves = () => {
@@ -778,32 +786,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Leave Policy Reminders - Mobile optimized 
-      <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Leave Policy Reminders
-        </h3>
-        <ul className="list-disc pl-4 space-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          <li>Only 1 casual leave per week is allowed</li>
-          <li>Maximum 5 paid leaves can be taken per month</li>
-          <li>
-            Miscellaneous leaves cannot be taken back-to-back for more than one
-            day
-          </li>
-          <li>
-            Emergency leaves are auto-approved but must be documented later
-          </li>
-          <li>
-            You can recall approved or pending leaves if your plans change
-          </li>
-          <li>
-            Your leave requests will be reviewed by{" "}
-            {assignedManager ? assignedManager.name : "your assigned manager"}
-          </li>
-        </ul>
-      </div> */}
-
-      {/* Leave Strategy Suggestions - Mobile optimized 
+      {/* Leave Strategy Suggestions - Mobile optimized */}
       <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-3 border border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Leave Strategy Suggestions
@@ -829,7 +812,7 @@ const Dashboard: React.FC = () => {
           )}
           <li>Combine weekends with your leaves for longer breaks.</li>
         </ul>
-      </div> */}
+      </div>
 
       {/* Recall Leave Modal */}
       {recallModalOpen && (
