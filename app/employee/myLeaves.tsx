@@ -296,6 +296,10 @@ const MyLeaves: React.FC = () => {
         setRecallConfirm(null);
         setRecallReason("");
 
+        navigate(`/dashboard/employee/${userId}/my-leaves`, {
+          state: { refreshBalance: true, timestamp: Date.now() },
+        });
+
         // Show success message
         alert(
           `Leave has been successfully recalled.${

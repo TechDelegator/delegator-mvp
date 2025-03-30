@@ -370,6 +370,11 @@ const Dashboard: React.FC = () => {
       // Close modal and reset state
       setRecallModalOpen(null);
       setRecallReason("");
+
+      navigate(`/dashboard/employee/${userId}`, {
+        state: { refreshBalance: true, timestamp: Date.now() },
+        replace: true,
+      });
     }
   };
 
