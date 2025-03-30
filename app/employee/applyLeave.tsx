@@ -147,11 +147,15 @@ const ApplyLeave: React.FC = () => {
       // Get current hour to determine leave date handling
       const currentHour = today.getHours();
 
-      if (currentHour >= 18) {
-        // After 6 PM
-        // Set leave for tomorrow
+      if (currentHour >= 18 || currentHour < 3) {
+        // After 6 PM OR between midnight and 3 AM
+        // Set leave for tomorrow (or "today" if after midnight)
         const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
+        if (currentHour >= 18) {
+          // After 6 PM - we need to add a day
+          tomorrow.setDate(today.getDate() + 1);
+        }
+        // For hours 0-3, tomorrow is already the current date
         const tomorrowFormatted = tomorrow.toISOString().split("T")[0];
         setStartDate(tomorrowFormatted);
         setEndDate(tomorrowFormatted);
@@ -159,7 +163,9 @@ const ApplyLeave: React.FC = () => {
         // Show notification to user
         setTimeout(() => {
           alert(
-            "Since it's after 6 PM, your emergency leave has been automatically scheduled for tomorrow."
+            currentHour >= 18
+              ? "Since it's after 6 PM, your emergency leave has been automatically scheduled for tomorrow."
+              : "Since it's early morning, your emergency leave has been scheduled for today."
           );
         }, 500);
       } else if (currentHour >= 12 && currentHour < 18) {
@@ -184,7 +190,7 @@ const ApplyLeave: React.FC = () => {
           }
         }, 500);
       } else {
-        // Before 12 PM
+        // Between 3 AM and 12 PM
         // Set for today (default behavior)
         setStartDate(formattedDate);
         setEndDate(formattedDate);
@@ -192,8 +198,95 @@ const ApplyLeave: React.FC = () => {
     }
 
     // Rest of your existing code...
-  }, [userId, location.search, startDate, endDate]);
+    // Check for past emergency leave usage
+    useEffect(() => {
+      const checkEmergencyLeaveUsage = () => {
+        const storedApplications = localStorage.getItem(
+          "leave-app-applications"
+        );
+        if (storedApplications) {
+          const applications: LeaveApplication[] =
+            JSON.parse(storedApplications);
+          const userApplications = applications.filter(
+            (a) => a.userId === userId
+          );
 
+          // Check for emergency leaves in the past 30 days
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+          const last30DaysEmergencyLeaves = userApplications.filter(
+            (leave) =>
+              leave.isEmergency && new Date(leave.appliedOn) >= thirtyDaysAgo
+          );
+
+          // Check for emergency leaves in the past year
+          const oneYearAgo = new Date();
+          oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+          const lastYearEmergencyLeaves = userApplications.filter(
+            (leave) =>
+              leave.isEmergency && new Date(leave.appliedOn) >= oneYearAgo
+          );
+
+          // Find most recent emergency leave
+          let mostRecent: string | null = null;
+          if (lastYearEmergencyLeaves.length > 0) {
+            const sortedLeaves = [...lastYearEmergencyLeaves].sort(
+              (a, b) =>
+                new Date(b.appliedOn).getTime() -
+                new Date(a.appliedOn).getTime()
+            );
+
+            if (sortedLeaves.length > 0) {
+              mostRecent = sortedLeaves[0].startDate;
+            }
+          }
+
+          setEmergencyLeaveCount({
+            last30Days: last30DaysEmergencyLeaves.length,
+            lastYear: lastYearEmergencyLeaves.length,
+            mostRecent,
+          });
+        }
+      };
+
+      checkEmergencyLeaveUsage();
+
+      const params = new URLSearchParams(location.search);
+      const reapplyLeaveId = params.get("reapply");
+
+      if (reapplyLeaveId) {
+        // Get existing applications from localStorage
+        const storedApplications = localStorage.getItem(
+          "leave-app-applications"
+        );
+
+        if (storedApplications) {
+          const applications: LeaveApplication[] =
+            JSON.parse(storedApplications);
+          const leaveToReapply = applications.find(
+            (leave) => leave.id === reapplyLeaveId && leave.userId === userId
+          );
+
+          if (leaveToReapply) {
+            // Pre-fill form with data from rejected leave
+            setLeaveType(leaveToReapply.type);
+            setStartDate(leaveToReapply.startDate);
+            setEndDate(leaveToReapply.endDate);
+
+            // Add a note about reapplying
+            const reasonPrefix = "Reapplying for previously rejected leave. ";
+            if (!leaveToReapply.reason.startsWith(reasonPrefix)) {
+              setReason(reasonPrefix + leaveToReapply.reason);
+            } else {
+              setReason(leaveToReapply.reason);
+            }
+          }
+        }
+      }
+    }, [userId, location.search]);
+  }, [userId, location.search, startDate, endDate]);
   // Check for public holidays whenever date range changes
   useEffect(() => {
     if (startDate && endDate) {
