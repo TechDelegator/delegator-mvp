@@ -127,21 +127,22 @@ const ApplyLeave: React.FC = () => {
 
   // Set default dates and handle emergency parameter effect
   useEffect(() => {
-    // Set default dates (today) for regular leaves too
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-
-    if (startDate === "") {
-      setStartDate(formattedDate);
-    }
-
-    if (endDate === "") {
-      setEndDate(formattedDate);
-    }
-
     // Check if emergency parameter is in URL
     const params = new URLSearchParams(location.search);
     const isEmergencyLeave = params.get("emergency") === "true";
+
+    // Get current date in local timezone (not UTC)
+    const now = new Date();
+
+    // Format date in local timezone YYYY-MM-DD
+    const formatLocalDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    const todayFormatted = formatLocalDate(now);
 
     if (isEmergencyLeave) {
       setIsEmergency(true);
@@ -149,36 +150,38 @@ const ApplyLeave: React.FC = () => {
       setReason("Emergency leave - details to be provided later");
 
       // Get current hour to determine leave date handling
-      const currentHour = today.getHours();
+      const currentHour = now.getHours();
 
-      if (currentHour >= 18 || currentHour < 3) {
-        // After 6 PM OR between midnight and 3 AM
-        // Set leave for tomorrow (or "today" if after midnight)
-        const tomorrow = new Date(today);
-        if (currentHour >= 18) {
-          // After 6 PM - we need to add a day
-          tomorrow.setDate(today.getDate() + 1);
-        }
-        // For hours 0-3, tomorrow is already the current date
-        const tomorrowFormatted = tomorrow.toISOString().split("T")[0];
+      if (currentHour >= 18) {
+        // After 6 PM - set for tomorrow
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const tomorrowFormatted = formatLocalDate(tomorrow);
+
         setStartDate(tomorrowFormatted);
         setEndDate(tomorrowFormatted);
 
-        // Show notification to user
         setTimeout(() => {
           alert(
-            currentHour >= 18
-              ? "Since it's after 6 PM, your emergency leave has been automatically scheduled for tomorrow."
-              : "Since it's early morning, your emergency leave has been scheduled for today."
+            "Since it's after 6 PM, your emergency leave has been automatically scheduled for tomorrow."
+          );
+        }, 500);
+      } else if (currentHour < 3) {
+        // Between midnight and 3 AM - set for today
+        setStartDate(todayFormatted);
+        setEndDate(todayFormatted);
+
+        setTimeout(() => {
+          alert(
+            "Since it's early morning, your emergency leave has been scheduled for today."
           );
         }, 500);
       } else if (currentHour >= 12 && currentHour < 18) {
-        // Between 12:01 PM and 6 PM
-        // Prompt user to choose
+        // Between 12:01 PM and 6 PM - prompt user to choose
         setTimeout(() => {
-          const tomorrow = new Date(today);
-          tomorrow.setDate(today.getDate() + 1);
-          const tomorrowFormatted = tomorrow.toISOString().split("T")[0];
+          const tomorrow = new Date(now);
+          tomorrow.setDate(now.getDate() + 1);
+          const tomorrowFormatted = formatLocalDate(tomorrow);
 
           const chooseDay = window.confirm(
             "Do you want to apply emergency leave for tomorrow instead of today?\n\n" +
@@ -189,19 +192,25 @@ const ApplyLeave: React.FC = () => {
             setStartDate(tomorrowFormatted);
             setEndDate(tomorrowFormatted);
           } else {
-            setStartDate(formattedDate);
-            setEndDate(formattedDate);
+            setStartDate(todayFormatted);
+            setEndDate(todayFormatted);
           }
         }, 500);
       } else {
-        // Between 3 AM and 12 PM
-        // Set for today (default behavior)
-        setStartDate(formattedDate);
-        setEndDate(formattedDate);
+        // Between 3 AM and 12 PM - set for today
+        setStartDate(todayFormatted);
+        setEndDate(todayFormatted);
+      }
+    } else {
+      // Non-emergency leave - just set default dates if they're empty
+      if (startDate === "") {
+        setStartDate(todayFormatted);
+      }
+      if (endDate === "") {
+        setEndDate(todayFormatted);
       }
     }
-  }, [location.search, startDate, endDate]);
-
+  }, [location.search]); // Only depend on location.search, not on startDate/endDate
   // Check for emergency leave usage
   useEffect(() => {
     const checkEmergencyLeaveUsage = () => {
