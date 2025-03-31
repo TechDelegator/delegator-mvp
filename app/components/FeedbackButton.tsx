@@ -31,32 +31,50 @@ const FeedbackButton: React.FC = () => {
     setIsSubmitted(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Replace with your Worker URL
+      const response = await fetch(
+        "https://feedback-worker.delegatoraxel.workers.dev",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: feedbackType,
+            category,
+            title,
+            description,
+            steps: feedbackType === "bug" ? steps : null,
+            email,
+            timestamp: new Date().toISOString(),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+        // Reset form after successful submission
+        setTimeout(() => {
+          setIsOpen(false);
+          resetForm();
+        }, 2000);
+      } else {
+        console.error("Error submitting feedback:", result.error);
+        alert("Failed to submit feedback. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("Failed to submit feedback. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-
-      // In a real app, you would send this data to your API
-      console.log({
-        type: feedbackType,
-        category,
-        title,
-        description,
-        steps: feedbackType === "bug" ? steps : null,
-        email,
-        timestamp: new Date().toISOString(),
-      });
-
-      // Reset form after successful submission
-      setTimeout(() => {
-        setIsOpen(false);
-        resetForm();
-      }, 2000);
-    }, 1000);
+    }
   };
 
   // Categories based on feedback type
