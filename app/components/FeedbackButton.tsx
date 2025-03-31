@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const FeedbackButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +10,51 @@ const FeedbackButton: React.FC = () => {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [pulseAnimation, setPulseAnimation] = useState(true);
 
-  const openModal = () => setIsOpen(true);
+  // Add effect to handle initial animations and tooltips
+  useEffect(() => {
+    // Check if this is first visit to the app
+    const hasSeenFeedbackPrompt = localStorage.getItem("hasSeenFeedbackPrompt");
+
+    if (!hasSeenFeedbackPrompt) {
+      // Show tooltip after 10 seconds
+      const tooltipTimer = setTimeout(() => {
+        setShowTooltip(true);
+      }, 10000);
+
+      // Hide tooltip after 8 seconds once shown
+      const hideTooltipTimer = setTimeout(() => {
+        setShowTooltip(false);
+        localStorage.setItem("hasSeenFeedbackPrompt", "true");
+      }, 18000);
+
+      return () => {
+        clearTimeout(tooltipTimer);
+        clearTimeout(hideTooltipTimer);
+      };
+    } else {
+      // Disable pulse animation after several sessions
+      const hasUsedAppMultipleTimes = localStorage.getItem("appSessionCount");
+      if (hasUsedAppMultipleTimes && parseInt(hasUsedAppMultipleTimes) > 3) {
+        setPulseAnimation(false);
+      }
+
+      // Update session count
+      const currentCount = parseInt(
+        localStorage.getItem("appSessionCount") || "0"
+      );
+      localStorage.setItem("appSessionCount", (currentCount + 1).toString());
+    }
+  }, []);
+
+  const openModal = () => {
+    setIsOpen(true);
+    setShowTooltip(false);
+    localStorage.setItem("hasSeenFeedbackPrompt", "true");
+  };
+
   const closeModal = () => {
     if (!isSubmitting) {
       setIsOpen(false);
@@ -98,27 +141,56 @@ const FeedbackButton: React.FC = () => {
 
   return (
     <>
-      {/* Floating Button */}
-      <button
-        onClick={openModal}
-        className="fixed bottom-4 right-4 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 sm:w-14 sm:h-14"
-        aria-label="Give feedback"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Floating Button with improved design */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end">
+        {/* Tooltip */}
+        {showTooltip && (
+          <div className="mb-2 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg text-sm max-w-xs">
+            <div className="flex items-start">
+              <span className="text-yellow-500 mr-2">✨</span>
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  Help us improve Delegator!
+                </p>
+                <p className="text-gray-600 dark:text-gray-300 text-xs mt-1">
+                  Share your thoughts or report issues - it only takes a minute!
+                </p>
+              </div>
+            </div>
+            <div className="absolute bottom-0 right-6 transform translate-y-1/2 rotate-45 w-2 h-2 bg-white dark:bg-gray-800"></div>
+          </div>
+        )}
+
+        <button
+          onClick={openModal}
+          className={`flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg hover:from-indigo-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ${
+            pulseAnimation ? "animate-pulse" : ""
+          }`}
+          aria-label="Give feedback"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-          />
-        </svg>
-      </button>
+          <div className="relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="16" cy="12" r="1"></circle>
+              <circle cx="8" cy="12" r="1"></circle>
+            </svg>
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+            </span>
+          </div>
+        </button>
+      </div>
 
       {/* Modal Backdrop */}
       {isOpen && (
